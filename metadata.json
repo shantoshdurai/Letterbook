@@ -1,0 +1,8 @@
+{
+  "name": "Letterbox",
+  "description": "Log reading, write reviews, create lists, and discover books on the Letterbox social platform for book lovers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
