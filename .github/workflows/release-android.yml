@@ -1,7 +1,7 @@
 name: Android APK
 
 # Builds the Android app and attaches the APK to a GitHub Release.
-#   Release:  git tag v1.0.0 && git push origin v1.0.0
+#   Release:  bump "version" in package.json and push to main (or push a tag v1.2.3)
 #   Or:       Actions → Android APK → Run workflow, tick "Publish a GitHub Release"
 #   Test run: Run workflow without ticking it (APK is uploaded as a build artifact)
 #
@@ -14,6 +14,7 @@ name: Android APK
 #   ANDROID_KEY_PASSWORD
 on:
   push:
+    branches: [main]
     tags: ['v*']
   workflow_dispatch:
     inputs:
@@ -26,10 +27,30 @@ permissions:
   contents: write
 
 jobs:
+  # A push to main releases automatically when package.json has a version that
+  # has no tag yet, so bumping "version" is all it takes to ship a new APK.
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.v.outputs.release }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        run: |
+          V="$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_TYPE" = "tag" ] || [ "${{ inputs.release }}" = "true" ]; then R=true
+          elif [ "$GITHUB_EVENT_NAME" = "push" ] && ! git ls-remote --exit-code --tags origin "v$V" > /dev/null; then R=true
+          else R=false; fi
+          echo "release=$R" >> "$GITHUB_OUTPUT"
+          echo "Version $V, release: $R"
+
   apk:
+    needs: check
+    if: needs.check.outputs.release == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     env:
       VERSION_CODE: ${{ github.run_number }}
+      RELEASE: ${{ needs.check.outputs.release }}
       HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +94,7 @@ jobs:
         run: |
           PKG_VERSION="$(node -p "require('./package.json').version")"
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then VERSION="${GITHUB_REF_NAME#v}"
-          elif [ "${{ inputs.release }}" = "true" ]; then VERSION="$PKG_VERSION"
+          elif [ "$RELEASE" = "true" ]; then VERSION="$PKG_VERSION"
           else VERSION="$PKG_VERSION-build.$GITHUB_RUN_NUMBER"; fi
           mv Letterbook.apk "Letterbook-$VERSION.apk"
           echo "file=Letterbook-$VERSION.apk" >> "$GITHUB_OUTPUT"
@@ -85,7 +106,7 @@ jobs:
           path: ${{ steps.name.outputs.file }}
 
       - name: Publish GitHub Release
-        if: github.ref_type == 'tag' || inputs.release
+        if: env.RELEASE == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.name.outputs.version }}

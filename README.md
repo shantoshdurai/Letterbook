@@ -86,9 +86,10 @@ Actions**. The site will be at `https://shantoshdurai.github.io/Letterbook/`.
 The Android app is the same web app inside a [Capacitor](https://capacitorjs.com) shell
 (`android/`). Sharing uses the native share sheet, so Instagram Stories works there too.
 
-- **Release an APK**: push a tag such as `v1.0.0`. The
-  `.github/workflows/release-android.yml` workflow builds the APK and attaches it to a
-  GitHub Release. You can also run it by hand from the Actions tab.
+- **Release an APK**: bump `version` in `package.json` and push to `main`. The
+  `.github/workflows/release-android.yml` workflow builds an ARM APK (arm64-v8a and
+  armeabi-v7a) and attaches it to a GitHub Release tagged `v<version>`. You can also run
+  it by hand from the Actions tab.
 - **Signing**: add `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
   `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD` as repository secrets to get a signed
   release APK that can be updated in place. Without them the workflow ships a debug APK.
