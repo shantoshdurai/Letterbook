@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+// Version name follows package.json; CI passes a growing build number as the version code.
+def appVersionName = new groovy.json.JsonSlurper().parse(file('../../package.json')).version
+def appVersionCode = (System.getenv('VERSION_CODE') ?: '1').toInteger()
+
+// Release signing comes from environment variables (GitHub Actions secrets).
+// Without them, release builds are left unsigned and CI ships the debug APK instead.
+def keystorePath = System.getenv('ANDROID_KEYSTORE_PATH')
+
 android {
     namespace = "io.github.shantoshdurai.letterbook"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +15,8 @@ android {
         applicationId "io.github.shantoshdurai.letterbook"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +24,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (keystorePath) {
+            release {
+                storeFile file(keystorePath)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keystorePath) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

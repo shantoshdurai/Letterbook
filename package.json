@@ -1,13 +1,22 @@
 {
   "name": "letterbook",
-  "private": true,
   "version": "1.0.0",
+  "description": "Letterbook: an open-source, Letterboxd-inspired reading diary. Log, rate, review and share the books you read.",
+  "license": "MIT",
+  "homepage": "https://shantoshdurai.github.io/Letterbook/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shantoshdurai/Letterbook.git"
+  },
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "android:sync": "npm run build && cap sync android",
+    "android:open": "cap open android"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
@@ -31,6 +40,5 @@
     "typescript": "^5.7.3",
     "vite": "^6.1.0",
     "vite-plugin-pwa": "^1.3.0"
-  },
-  "description": "Letterbook: log, rate, review and share the books you read."
+  }
 }
