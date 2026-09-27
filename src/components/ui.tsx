@@ -24,6 +24,7 @@ export const BookCover: React.FC<{
   return (
     <img
       src={book.coverImage}
+      crossOrigin="anonymous"
       alt={book.title}
       loading={eager ? 'eager' : 'lazy'}
       decoding="async"

@@ -39,15 +39,18 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         navigateFallback: 'index.html',
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             // Book covers: cache aggressively, they never change for a given id.
             urlPattern: ({ url }) => url.hostname === 'covers.openlibrary.org' || url.hostname === 'images.unsplash.com',
             handler: 'CacheFirst',
             options: {
-              cacheName: 'images',
+              // Covers load in CORS mode so the Story card canvas can draw them; never
+              // cache opaque copies, which a canvas can't read.
+              cacheName: 'covers-v2',
               expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
+              cacheableResponse: { statuses: [200] },
             },
           },
           {

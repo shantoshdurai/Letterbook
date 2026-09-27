@@ -192,6 +192,7 @@ export const SearchScreen: React.FC<{ active: boolean }> = ({ active }) => {
                         <img
                           key={b.id}
                           src={b.coverImage}
+                          crossOrigin="anonymous"
                           alt=""
                           loading="lazy"
                           className="w-10 aspect-[2/3] object-cover rounded shadow-lg border border-black/40 -ml-4 first:ml-0 group-hover:-translate-y-1 transition-transform"

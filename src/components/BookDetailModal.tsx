@@ -109,6 +109,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
       <div className="relative h-60 w-full overflow-hidden bg-[#18222f]">
         <img
           src={book.backdropImage || book.coverImage}
+          crossOrigin="anonymous"
           alt=""
           aria-hidden="true"
           className={`w-full h-full object-cover ${book.backdropImage ? 'opacity-50' : 'opacity-40 blur-2xl scale-125'}`}

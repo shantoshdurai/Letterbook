@@ -181,7 +181,7 @@ export const BookQuickMenuModal: React.FC<BookQuickMenuProps> = ({ z, bookId }) 
                     }}
                     className={`relative aspect-[2/3] rounded-md overflow-hidden border-2 transition-all ${active ? 'border-[#00E054]' : 'border-transparent hover:border-[#40BCF4]'}`}
                   >
-                    <img src={url.replace('-L.jpg', '-M.jpg')} alt="" loading="lazy" className="w-full h-full object-cover bg-[#10151c]" />
+                    <img src={url.replace('-L.jpg', '-M.jpg')} crossOrigin="anonymous" alt="" loading="lazy" className="w-full h-full object-cover bg-[#10151c]" />
                     {active && <span className="absolute top-1 right-1 p-0.5 rounded-full bg-[#00E054] text-black"><Check className="w-3 h-3 stroke-[3]" /></span>}
                   </button>
                 );

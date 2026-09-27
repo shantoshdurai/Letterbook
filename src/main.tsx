@@ -18,4 +18,6 @@ if (rootElement) {
 // app already ships its files inside the APK, so it skips the service worker.
 if (import.meta.env.PROD && !isNativeApp()) {
   registerSW({ immediate: true });
+  // v1.0.0 cached covers without CORS, which broke the Story card image; drop that cache.
+  if ('caches' in window) caches.delete('images').catch(() => {});
 }

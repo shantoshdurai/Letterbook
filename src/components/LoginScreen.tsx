@@ -112,6 +112,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
         <img
           key={b.id}
           src={b.coverImage}
+          crossOrigin="anonymous"
           alt=""
           className={`absolute inset-0 w-full h-full object-cover scale-125 blur-2xl transition-opacity duration-1000 ${i === slide ? 'opacity-60' : 'opacity-0'}`}
         />
@@ -150,6 +151,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                   <img
                     key={b.id}
                     src={b.coverImage}
+                    crossOrigin="anonymous"
                     alt={i === slide ? `${b.title} by ${b.author}` : ''}
                     className={`absolute inset-0 w-full h-full object-cover rounded-lg book-shadow-lg transition-all duration-700 ${
                       i === slide ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-95 -rotate-3'

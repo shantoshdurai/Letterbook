@@ -33,14 +33,18 @@ function loadImage(src?: string): Promise<HTMLImageElement | null> {
   if (!src) return Promise.resolve(null);
   const cached = imageCache.get(src);
   if (cached) return cached;
-  const p = new Promise<HTMLImageElement | null>((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.decoding = 'async';
-    img.onload = () => resolve(img);
-    img.onerror = () => resolve(null);
-    img.src = src;
-  });
+  const attempt = (url: string) =>
+    new Promise<HTMLImageElement | null>((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.decoding = 'async';
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+  // A cover cached earlier without CORS (e.g. by an older service worker) can't be
+  // drawn on the canvas; a query string makes the browser fetch a fresh CORS copy.
+  const p = attempt(src).then((img) => img ?? attempt(`${src}${src.includes('?') ? '&' : '?'}story=1`));
   imageCache.set(src, p);
   return p;
 }
