@@ -1,122 +1,131 @@
 import React from 'react';
-import { BookList, Book } from '../types';
-import { BookCoverCard } from './BookCoverCard';
-import { X, Heart } from 'lucide-react';
+import { Heart, Pencil, Share2, Trash2, Lock, ListPlus } from 'lucide-react';
+import { useLibrary } from '../state/library';
+import { useUI } from '../state/ui';
+import { relativeTime } from '../lib/format';
+import { shareOrCopy } from '../lib/share';
+import { Avatar, BookPoster, EmptyState, OverlayScreen, ScreenHeader } from './ui';
 
-interface ListDetailModalProps {
-  list: BookList | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onSelectBook: (book: Book) => void;
-  onLongPressBook?: (book: Book) => void;
-  onToggleWatchlist: (book: Book, e: React.MouseEvent) => void;
-  watchlistBookIds: string[];
-  readBookIds: string[];
-  likedBookIds: string[];
-  onToggleLikeList: (listId: string) => void;
-  isLiked?: boolean;
-}
+export const ListDetailModal: React.FC<{ z: number; listId: string }> = ({ z, listId }) => {
+  const lib = useLibrary();
+  const ui = useUI();
+  const list = lib.allLists.find((l) => l.id === listId);
 
-export const ListDetailModal: React.FC<ListDetailModalProps> = ({
-  list,
-  isOpen,
-  onClose,
-  onSelectBook,
-  onLongPressBook,
-  onToggleWatchlist,
-  watchlistBookIds,
-  readBookIds,
-  likedBookIds,
-  onToggleLikeList,
-  isLiked = false
-}) => {
-  if (!isOpen || !list) return null;
+  if (!list) {
+    return (
+      <OverlayScreen z={z} label="List">
+        <ScreenHeader title="List" onBack={ui.close} />
+        <EmptyState title="This list no longer exists" />
+      </OverlayScreen>
+    );
+  }
+
+  const mine = list.creatorId === lib.profile.id;
+  const liked = lib.likedListIds.includes(list.id);
+  const books = lib.resolve(list.bookIds);
+
+  const share = async () => {
+    const lines = books.map((b, i) => `${list.isRanked ? `${i + 1}. ` : '• '}${b.title} — ${b.author}`);
+    const r = await shareOrCopy({
+      title: list.title,
+      text: `${list.title}${list.description ? `\n${list.description}` : ''}\n\n${lines.join('\n')}\n\nMade with Letterbook`,
+    });
+    if (r === 'copied') ui.toast('List copied to clipboard');
+  };
+
+  const remove = async () => {
+    const ok = await ui.confirm({ title: 'Delete this list?', body: `"${list.title}" will be permanently deleted.`, confirmLabel: 'Delete', destructive: true });
+    if (!ok) return;
+    lib.actions.deleteList(list.id);
+    ui.toast('List deleted');
+    ui.close();
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/90 backdrop-blur-md overflow-y-auto" id="list-detail-modal">
-      <div className="relative w-full max-w-2xl bg-[#121820] border-x border-b border-[#232f3e] min-h-screen pb-24 text-white shadow-2xl">
-        {/* Header */}
-        <div className="p-6 border-b border-[#232f3e] bg-[#151d27] space-y-4">
-          <div className="flex items-center justify-between">
+    <OverlayScreen z={z} label={list.title}>
+      <ScreenHeader
+        title={list.isRanked ? 'Ranked list' : 'List'}
+        onBack={ui.close}
+        right={
+          <>
+            <button type="button" onClick={share} aria-label="Share list" className="p-2 rounded-full text-[#8fa0b5] hover:text-white hover:bg-[#1f2834]">
+              <Share2 className="w-4 h-4" />
+            </button>
+            {mine && (
+              <>
+                <button type="button" onClick={() => ui.open({ type: 'createList', editListId: list.id })} aria-label="Edit list" className="p-2 rounded-full text-[#8fa0b5] hover:text-white hover:bg-[#1f2834]">
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button type="button" onClick={remove} aria-label="Delete list" className="p-2 rounded-full text-[#ff7b7b] hover:bg-[#3a1c1c]">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </>
+            )}
+          </>
+        }
+      />
+
+      <div className="p-5 space-y-3 border-b border-[#232f3e] bg-[#151d27]">
+        <h1 className="text-xl font-bold text-white tracking-tight flex items-start gap-2">
+          {list.isPrivate && <Lock className="w-4 h-4 mt-1.5 text-[#6c7f96] shrink-0" aria-label="Private" />}
+          {list.title}
+        </h1>
+        {list.description && <p className="text-sm text-[#9eb0c3] leading-relaxed whitespace-pre-line">{list.description}</p>}
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-2">
+            <Avatar src={mine ? lib.profile.avatar : list.creatorAvatar} name={mine ? lib.profile.name : list.creatorName} className="w-7 h-7" />
+            <div>
+              <span className="text-xs font-semibold text-white block">{mine ? 'You' : list.creatorName}</span>
+              <span className="text-[10px] text-[#6c7f96]">{list.bookIds.length} books · updated {relativeTime(list.updatedAt).toLowerCase()}</span>
+            </div>
+          </div>
+          {!mine && (
             <button
               type="button"
-              onClick={onClose}
-              className="text-xs font-mono text-[#8fa0b5] hover:text-white"
+              onClick={() => lib.actions.toggleLikeList(list.id)}
+              aria-pressed={liked}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-all ${
+                liked ? 'border-[#FF8000] bg-[#FF8000]/10 text-[#FF8000]' : 'border-[#293849] text-[#8fa0b5] hover:text-white'
+              }`}
             >
-              ← Back
+              <Heart className={`w-3.5 h-3.5 ${liked ? 'fill-[#FF8000]' : ''}`} />
+              <span className="font-mono">{list.likesCount + (liked ? 1 : 0)}</span>
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1 rounded-full text-[#8fa0b5] hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#15E558]/20 text-[#15E558] font-bold">
-                {list.isRanked ? 'Ranked List' : 'Curated Collection'}
-              </span>
-              <span className="text-xs text-[#6c7f96]">• {list.books.length} Books</span>
-            </div>
-            <h1 className="text-xl font-bold text-white tracking-tight">{list.title}</h1>
-            <p className="text-xs text-[#9eb0c3] mt-2 leading-relaxed">{list.description}</p>
-          </div>
-
-          {/* Creator Profile line */}
-          <div className="flex items-center justify-between pt-2 border-t border-[#232f3e]">
-            <div className="flex items-center gap-2">
-              <img
-                src={list.creatorAvatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"}
-                alt={list.creatorName || "Curator"}
-                className="w-7 h-7 rounded-full object-cover border border-[#37495e]"
-              />
-              <div>
-                <span className="text-xs font-semibold text-white">{list.creatorName || "Curator"}</span>
-                <span className="text-[10px] text-[#6c7f96] block">Updated {list.updatedAt}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 text-xs">
-              <button
-                type="button"
-                onClick={() => onToggleLikeList(list.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all ${
-                  isLiked
-                    ? 'border-[#FF8000] bg-[#FF8000]/10 text-[#FF8000]'
-                    : 'border-[#293849] text-[#8fa0b5] hover:text-white'
-                }`}
-              >
-                <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-[#FF8000]' : ''}`} />
-                <span className="font-mono text-xs">{list.likesCount + (isLiked ? 1 : 0)}</span>
-              </button>
-            </div>
-          </div>
+          )}
         </div>
+      </div>
 
-        {/* List Books Grid */}
-        <div className="p-6">
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
-            {list.books.map((book, index) => (
-              <BookCoverCard
+      <div className="p-4 pb-safe">
+        {books.length === 0 ? (
+          <EmptyState
+            icon={<ListPlus className="w-10 h-10" />}
+            title="No books yet"
+            body={mine ? 'Long-press any book and choose “Add to a list”, or edit this list to add books.' : undefined}
+            action={mine ? (
+              <button type="button" onClick={() => ui.open({ type: 'createList', editListId: list.id })} className="px-4 py-2 rounded-lg bg-[#15E558] text-black text-xs font-bold">
+                Add books
+              </button>
+            ) : undefined}
+          />
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            {books.map((book, index) => (
+              <BookPoster
                 key={book.id}
                 book={book}
-                size="md"
-                showRating={true}
+                showTitle
                 rank={list.isRanked ? index + 1 : undefined}
-                isWatchlisted={watchlistBookIds.includes(book.id)}
-                isRead={readBookIds.includes(book.id)}
-                isLiked={likedBookIds.includes(book.id)}
-                onSelect={onSelectBook}
-                onLongPress={onLongPressBook}
-                onToggleWatchlist={onToggleWatchlist}
+                onSelect={(b) => ui.open({ type: 'book', book: b })}
+                onLongPress={(b) => ui.open({ type: 'quickMenu', bookId: b.id })}
+                isWatchlisted={lib.watchlistIds.includes(book.id)}
+                onToggleWatchlist={(b) => ui.toast(lib.actions.toggleWatchlist(b) ? 'Added to watchlist' : 'Removed from watchlist')}
+                isRead={lib.readIds.includes(book.id)}
+                isLiked={lib.likedIds.includes(book.id)}
               />
             ))}
           </div>
-        </div>
+        )}
       </div>
-    </div>
+    </OverlayScreen>
   );
 };

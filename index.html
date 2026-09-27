@@ -2,14 +2,28 @@
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='15' width='80' height='70' rx='16' fill='%2318222d'/><path d='M35 15v20c0 3 3 5 5 5h20c3 0 5-2 5-5V15' stroke='%2315E558' stroke-width='6'/><path d='M50 35v30l-7-5-7 5V35' fill='%2315E558'/><circle cx='70' cy='30' r='5' fill='%2340BCF4'/></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Letterbox • The Social Network for Book Lovers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Letterbook · Track, rate and share the books you read</title>
+    <meta name="description" content="Letterbook is a reading diary for book lovers: log what you read, rate and review it, build lists, and share your ratings to Instagram Stories." />
+    <meta name="theme-color" content="#14181c" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Letterbook" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Letterbook" />
+    <meta property="og:description" content="Track, rate and share the books you read." />
+    <meta property="og:image" content="icons/icon-512.png" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://covers.openlibrary.org" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   </head>
-  <body class="bg-[#0f1419] text-[#e0e6ed] antialiased selection:bg-[#15e558] selection:text-black overflow-x-hidden min-h-screen">
+  <body>
+    <noscript>Letterbook needs JavaScript to run.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

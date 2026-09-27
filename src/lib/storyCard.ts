@@ -293,67 +293,42 @@ function fitFont(ctx: CanvasRenderingContext2D, text: string, weight: string, fa
   return size;
 }
 
-// Mirrors the BrandLogo SVG (40×40 viewBox) so the export carries the same mark.
+// Mirrors the BrandMark SVG (48×48 viewBox): three book spines, the last one leaning.
+function drawMark(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+  const s = size / 48;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(s, s);
+  ctx.translate(-3.4, 0.9);
+  const spine = (rx: number, ry: number, w: number, h: number, fill: string) => {
+    roundRectPath(ctx, rx, ry, w, h, 2);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.fillStyle = 'rgba(20, 24, 28, 0.35)';
+    ctx.fillRect(rx, ry + 4, w, 2.2);
+  };
+  spine(9, 13, 8, 25, ORANGE);
+  spine(19, 8, 8, 30, GREEN);
+  ctx.translate(36.5, 38);
+  ctx.rotate((20 * Math.PI) / 180);
+  ctx.translate(-36.5, -38);
+  spine(29, 12, 8, 26, BLUE);
+  ctx.restore();
+}
+
 function drawLogo(ctx: CanvasRenderingContext2D, centerX: number, cy: number, iconSize: number) {
   ctx.save();
   ctx.font = `800 ${Math.round(iconSize * 0.62)}px ${SANS}`;
   ctx.textBaseline = 'middle';
-  const letter = ctx.measureText('Letter').width;
-  const box = ctx.measureText('box').width;
-  const gap = iconSize * 0.3;
-  const total = iconSize + gap + letter + box;
+  const word = 'Letterbook';
+  const textW = ctx.measureText(word).width;
+  const gap = iconSize * 0.12;
+  const total = iconSize + gap + textW;
   const x = centerX - total / 2;
-  const s = iconSize / 40;
-  const y = cy - iconSize / 2;
-
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(s, s);
-  ctx.shadowColor = 'rgba(21, 229, 88, 0.45)';
-  ctx.shadowBlur = 10;
-  roundRectPath(ctx, 3, 5, 34, 30, 7);
-  ctx.fillStyle = '#18222d';
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#2a3a4d';
-  ctx.stroke();
-  ctx.lineCap = 'round';
-  ctx.lineWidth = 2.5;
-  ctx.strokeStyle = GREEN;
-  ctx.beginPath();
-  ctx.moveTo(14, 5);
-  ctx.lineTo(14, 13);
-  ctx.quadraticCurveTo(14, 15, 16, 15);
-  ctx.lineTo(24, 15);
-  ctx.quadraticCurveTo(26, 15, 26, 13);
-  ctx.lineTo(26, 5);
-  ctx.stroke();
-  ctx.fillStyle = GREEN;
-  ctx.beginPath();
-  ctx.moveTo(20, 12);
-  ctx.lineTo(20, 25);
-  ctx.lineTo(17.5, 23);
-  ctx.lineTo(15, 25);
-  ctx.lineTo(15, 12);
-  ctx.closePath();
-  ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = BLUE;
-  ctx.beginPath();
-  ctx.moveTo(10, 28);
-  ctx.lineTo(30, 28);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(28, 12, 2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
+  drawMark(ctx, x, cy - iconSize / 2, iconSize);
   ctx.textAlign = 'left';
   ctx.fillStyle = '#ffffff';
-  ctx.fillText('Letter', x + iconSize + gap, cy + 2);
-  ctx.fillStyle = GREEN;
-  ctx.fillText('box', x + iconSize + gap + letter, cy + 2);
+  ctx.fillText(word, x + iconSize + gap, cy + 2);
   ctx.restore();
 }
 
@@ -396,7 +371,7 @@ function renderPoster(ctx: CanvasRenderingContext2D, o: StoryCardOptions, cover:
   const posterY = 250;
   drawPoster(ctx, cover, book, posterX, posterY, posterW, posterH, 22);
 
-  const rating = review?.rating ?? book.averageRating;
+  const rating = review?.rating || 0;
   const liked = Boolean(review?.liked);
   const starSize = 88;
   const ratingW = measureRating(rating, starSize, liked);
@@ -421,7 +396,7 @@ function renderPoster(ctx: CanvasRenderingContext2D, o: StoryCardOptions, cover:
 
   ctx.font = `500 30px ${MONO}`;
   ctx.fillStyle = 'rgba(224, 230, 237, 0.6)';
-  ctx.fillText(`read by ${handleOf(profile, review)}`, W / 2, H - 200);
+  ctx.fillText(`${review ? 'read by' : 'recommended by'} ${handleOf(profile, review)}`, W / 2, H - 200);
   drawLogo(ctx, W / 2, H - 120, 64);
 }
 
@@ -477,7 +452,7 @@ function renderReview(ctx: CanvasRenderingContext2D, o: StoryCardOptions, cover:
   ctx.fillText(String(book.year), textX, y + 62);
   ctx.fillText(book.author, textX, y + 110);
 
-  const rating = review?.rating ?? book.averageRating;
+  const rating = review?.rating || 0;
   drawRating(ctx, rating, Boolean(review?.liked), textX, y + 200, 64);
 
   // Review body
@@ -500,7 +475,7 @@ function renderReview(ctx: CanvasRenderingContext2D, o: StoryCardOptions, cover:
   ctx.font = `500 30px ${MONO}`;
   ctx.fillStyle = 'rgba(224, 230, 237, 0.55)';
   ctx.textAlign = 'center';
-  ctx.fillText(`Review by ${handleOf(profile, review)}`, W / 2, H - 120);
+  ctx.fillText(`${review?.content ? 'Review by' : review ? 'Read by' : 'Recommended by'} ${handleOf(profile, review)}`, W / 2, H - 120);
 }
 
 function renderMinimal(ctx: CanvasRenderingContext2D, o: StoryCardOptions, cover: HTMLImageElement | null) {
@@ -514,7 +489,7 @@ function renderMinimal(ctx: CanvasRenderingContext2D, o: StoryCardOptions, cover
   ctx.font = `500 30px ${MONO}`;
   ctx.fillStyle = 'rgba(224, 230, 237, 0.55)';
   ctx.textAlign = 'center';
-  ctx.fillText('JUST FINISHED', W / 2, 280);
+  ctx.fillText(review ? 'JUST FINISHED' : 'ON MY SHELF', W / 2, 280);
 
   const posterW = 480;
   const posterH = 720;
@@ -528,7 +503,7 @@ function renderMinimal(ctx: CanvasRenderingContext2D, o: StoryCardOptions, cover
   ctx.fillStyle = 'rgba(224, 230, 237, 0.7)';
   ctx.fillText(book.author, W / 2, y + 62);
 
-  const rating = review?.rating ?? book.averageRating;
+  const rating = review?.rating || 0;
   const liked = Boolean(review?.liked);
   const ratingW = measureRating(rating, 70, liked);
   drawRating(ctx, rating, liked, (W - ratingW) / 2, y + 170, 70);
@@ -578,5 +553,5 @@ export function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 
 export function storyFileName(book: Book) {
   const slug = book.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  return `letterbox-${slug || 'story'}.png`;
+  return `letterbook-${slug || 'story'}.png`;
 }

@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Book, Review, UserProfile } from '../types';
+import { Review } from '../types';
 import { X, Download, Copy, Check, Camera, Loader2, Share2, Quote } from 'lucide-react';
 import { renderStoryCard, canvasToBlob, storyFileName, StoryTheme } from '../lib/storyCard';
+import { downloadBlob } from '../lib/share';
+import { useLibrary } from '../state/library';
+import { useUI } from '../state/ui';
 
 interface InstagramStoryModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  book: Book;
+  z: number;
+  bookId: string;
   review?: Review | null;
-  profile?: UserProfile;
-  onShowToast: (msg: string) => void;
   // Shown right after logging a book, Letterboxd-style
   justLogged?: boolean;
 }
@@ -20,15 +20,13 @@ const THEMES: { id: StoryTheme; label: string }[] = [
   { id: 'minimal', label: 'Minimal' },
 ];
 
-export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({
-  isOpen,
-  onClose,
-  book,
-  review,
-  profile,
-  onShowToast,
-  justLogged,
-}) => {
+export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({ z, bookId, review, justLogged }) => {
+  const lib = useLibrary();
+  const ui = useUI();
+  const book = lib.catalog[bookId];
+  const profile = lib.profile;
+  const onClose = ui.close;
+  const onShowToast = (msg: string) => ui.toast(msg);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [storyTheme, setStoryTheme] = useState<StoryTheme>(review?.content && !review.hasSpoilers ? 'review' : 'poster');
   const [includeReviewText, setIncludeReviewText] = useState(true);
@@ -38,7 +36,7 @@ export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!isOpen || !book) return;
+    if (!book) return;
     let cancelled = false;
     let url: string | null = null;
     // Fresh canvas per render so a slow, superseded render can't overwrite a newer one.
@@ -62,9 +60,9 @@ export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({
       cancelled = true;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [isOpen, book, review, profile, storyTheme, includeReviewText]);
+  }, [book, review, profile, storyTheme, includeReviewText]);
 
-  if (!isOpen || !book) return null;
+  if (!book) return null;
 
   const getFile = async () => {
     const canvas = canvasRef.current;
@@ -73,16 +71,7 @@ export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({
     return new File([blob], storyFileName(book), { type: 'image/png' });
   };
 
-  const downloadFile = (file: File) => {
-    const url = URL.createObjectURL(file);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = file.name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
+  const downloadFile = (file: File) => downloadBlob(file, file.name);
 
   // On phones the native share sheet lists Instagram (Stories / Feed / Direct).
   // Browsers without file sharing get the PNG downloaded instead.
@@ -94,7 +83,7 @@ export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({
       const shareData: ShareData = {
         files: [file],
         title: book.title,
-        text: `${book.title} by ${book.author} — on Letterbox`,
+        text: `${book.title} by ${book.author} — on Letterbook`,
       };
       if (navigator.canShare?.(shareData)) {
         await navigator.share(shareData);
@@ -138,7 +127,7 @@ export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({
   const hasReviewText = Boolean(review?.content);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn" id="instagram-story-modal">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fadeIn" style={{ zIndex: 50 + z }} id="instagram-story-modal" role="dialog" aria-modal="true" aria-label="Share to Instagram Story">
       <div className="w-full max-w-sm bg-[#161c22] border border-[#273544] rounded-2xl flex flex-col shadow-2xl overflow-hidden max-h-[94vh]">
         {/* Header */}
         <div className="px-4 py-3 border-b border-[#232f3e] flex items-center justify-between bg-[#121820]">
@@ -158,6 +147,7 @@ export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close"
             className="p-1 rounded-full text-[#8fa0b5] hover:text-white hover:bg-[#222e3d]"
           >
             <X className="w-4 h-4" />

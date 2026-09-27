@@ -1,355 +1,352 @@
-import React, { useState, useEffect } from 'react';
-import { Book, ReadingLogEntry, ReadingFormat } from '../types';
-import { RatingStars } from './RatingStars';
-import { X, Heart, BookOpen, Tablet, Headphones, Calendar, AlertTriangle, RefreshCw, Check, Sparkles } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Heart, BookOpen, Tablet, Headphones, AlertTriangle, RefreshCw, Check, X, Search, Loader2, Trash2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { Book, ReadingFormat, ReadingLogEntry, Review } from '../types';
+import { useLibrary } from '../state/library';
+import { useUI } from '../state/ui';
+import { useDebounced } from '../hooks/useBooks';
+import { searchBooks } from '../lib/openLibrary';
+import { todayISO, uid } from '../lib/format';
+import { RatingStars } from './RatingStars';
+import { BookCover, Sheet } from './ui';
 
 interface LogBookModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  books: Book[];
-  preselectedBook?: Book | null;
-  onSaveLog: (entry: ReadingLogEntry, book: Book) => void;
+  z: number;
+  bookId?: string;
+  logId?: string;
 }
 
-export const LogBookModal: React.FC<LogBookModalProps> = ({
-  isOpen,
-  onClose,
-  books,
-  preselectedBook,
-  onSaveLog
-}) => {
-  const [selectedBook, setSelectedBook] = useState<Book | null>(preselectedBook || books[0] || null);
-  const [rating, setRating] = useState<number>(4.0);
-  const [liked, setLiked] = useState<boolean>(false);
-  const [format, setFormat] = useState<ReadingFormat>('physical');
-  const [dateFinished, setDateFinished] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [review, setReview] = useState<string>('');
-  const [hasSpoilers, setHasSpoilers] = useState<boolean>(false);
-  const [isReRead, setIsReRead] = useState<boolean>(false);
-  const [tagInput, setTagInput] = useState<string>('');
-  const [tags, setTags] = useState<string[]>(['favorites', '2026-reads']);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isSelectingBook, setIsSelectingBook] = useState<boolean>(!preselectedBook);
+const FORMATS: { id: ReadingFormat; label: string; icon: typeof BookOpen; tint: string }[] = [
+  { id: 'physical', label: 'Print', icon: BookOpen, tint: '#15E558' },
+  { id: 'ebook', label: 'E-book', icon: Tablet, tint: '#40BCF4' },
+  { id: 'audiobook', label: 'Audio', icon: Headphones, tint: '#FF8000' },
+];
+
+const BookPicker: React.FC<{ onPick: (b: Book) => void }> = ({ onPick }) => {
+  const lib = useLibrary();
+  const [q, setQ] = useState('');
+  const [remote, setRemote] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(false);
+  const debounced = useDebounced(q.trim(), 400);
 
   useEffect(() => {
-    if (preselectedBook) {
-      setSelectedBook(preselectedBook);
-      setIsSelectingBook(false);
-    } else if (books.length > 0 && !selectedBook) {
-      setSelectedBook(books[0]);
+    if (debounced.length < 2) {
+      setRemote([]);
+      return;
     }
-  }, [preselectedBook, books]);
+    const ctrl = new AbortController();
+    setLoading(true);
+    searchBooks(debounced, { limit: 20, signal: ctrl.signal })
+      .then(setRemote)
+      .catch(() => setRemote([]))
+      .finally(() => {
+        if (!ctrl.signal.aborted) setLoading(false);
+      });
+    return () => ctrl.abort();
+  }, [debounced]);
 
-  if (!isOpen) return null;
+  const suggestions = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    // With no query, suggest the watchlist and recently viewed books.
+    if (!needle) return lib.resolve(Array.from(new Set([...lib.watchlistIds, ...lib.recentBookIds]))).slice(0, 12);
+    const local = Object.values(lib.catalog).filter((b) => b.title.toLowerCase().includes(needle) || b.author.toLowerCase().includes(needle));
+    const seen = new Set(local.map((b) => b.id));
+    return [...local, ...remote.filter((b) => !seen.has(b.id))];
+  }, [q, remote, lib]);
 
-  const handleAddTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim().toLowerCase())) {
-      setTags([...tags, tagInput.trim().toLowerCase()]);
-      setTagInput('');
-    }
+  return (
+    <div className="p-5 space-y-3">
+      <div className="relative">
+        <Search className="w-4 h-4 text-[#6c7f96] absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <input
+          type="search"
+          autoFocus
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Which book did you read?"
+          aria-label="Search for a book to log"
+          className="w-full pl-10 pr-10 py-3 rounded-xl bg-[#1a2330] border border-[#273648] text-white placeholder-[#6c7f96] text-sm focus:outline-none focus:border-[#15E558]"
+        />
+        {loading && <Loader2 className="w-4 h-4 text-[#8fa0b5] absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin" />}
+      </div>
+      {!q && suggestions.length > 0 && <p className="text-[11px] text-[#6c7f96]">From your watchlist and recent books</p>}
+      <div className="space-y-1.5 max-h-[55dvh] overflow-y-auto">
+        {suggestions.map((b) => (
+          <button
+            key={b.id}
+            type="button"
+            onClick={() => onPick(b)}
+            className="w-full flex items-center gap-3 p-2 rounded-xl border border-transparent hover:border-[#15E558] hover:bg-[#1f2b3a] text-left transition-all"
+          >
+            <span className="w-10 aspect-[2/3] rounded overflow-hidden shrink-0 bg-[#1a2330]">
+              <BookCover book={b} />
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="text-sm font-bold text-white truncate block">{b.title}</span>
+              <span className="text-xs text-[#8fa0b5] truncate block">{b.author}{b.year ? ` · ${b.year}` : ''}</span>
+            </span>
+          </button>
+        ))}
+        {q.trim().length >= 2 && !loading && suggestions.length === 0 && (
+          <p className="py-6 text-center text-xs text-[#6c7f96]">No books found for “{q}”.</p>
+        )}
+        {!q && suggestions.length === 0 && (
+          <p className="py-6 text-center text-xs text-[#6c7f96]">Start typing a title or author.</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export const LogBookModal: React.FC<LogBookModalProps> = ({ z, bookId, logId }) => {
+  const lib = useLibrary();
+  const ui = useUI();
+  const existing = logId ? lib.logs.find((l) => l.id === logId) : undefined;
+  const [book, setBook] = useState<Book | null>(() => {
+    const id = existing?.bookId || bookId;
+    return id ? lib.catalog[id] || null : null;
+  });
+  const priorLogs = book ? lib.logs.filter((l) => l.bookId === book.id && l.id !== logId) : [];
+
+  const [rating, setRating] = useState(existing?.rating ?? 0);
+  const [liked, setLiked] = useState(existing?.liked ?? (book ? lib.likedIds.includes(book.id) : false));
+  const [format, setFormat] = useState<ReadingFormat>(existing?.format ?? 'physical');
+  const [date, setDate] = useState(existing?.dateFinished ?? todayISO());
+  const [review, setReview] = useState(existing?.review ?? '');
+  const [spoilers, setSpoilers] = useState(Boolean(existing?.hasSpoilers));
+  const [reRead, setReRead] = useState(existing?.isReRead ?? priorLogs.length > 0);
+  const [tags, setTags] = useState<string[]>(existing?.tags ?? []);
+  const [tagInput, setTagInput] = useState('');
+
+  const addTag = () => {
+    const t = tagInput.trim().toLowerCase().replace(/^#/, '').replace(/\s+/g, '-');
+    if (t && !tags.includes(t)) setTags([...tags, t]);
+    setTagInput('');
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(t => t !== tagToRemove));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const save = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedBook) return;
-
-    // Trigger celebratory confetti
-    confetti({
-      particleCount: 80,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#15E558', '#FF8000', '#40BCF4', '#ffffff']
-    });
-
-    const newLog: ReadingLogEntry = {
-      id: `log-${Date.now()}`,
-      bookId: selectedBook.id,
-      dateFinished,
+    if (!book) return;
+    if (date > todayISO()) {
+      ui.toast("The finish date can't be in the future", { tone: 'error' });
+      return;
+    }
+    const entry: ReadingLogEntry = {
+      id: existing?.id || uid('log'),
+      bookId: book.id,
+      dateFinished: date,
       rating,
       liked,
       review: review.trim() || undefined,
-      hasSpoilers,
-      isReRead,
+      hasSpoilers: spoilers,
+      isReRead: reRead,
       format,
-      tags
+      tags,
+      createdAt: existing?.createdAt,
     };
+    lib.actions.saveLog(entry, book);
 
-    onSaveLog(newLog, selectedBook);
-    onClose();
+    if (existing) {
+      ui.toast('Diary entry updated');
+      ui.close();
+      return;
+    }
+
+    confetti({ particleCount: 70, spread: 70, origin: { y: 0.7 }, colors: ['#15E558', '#FF8000', '#40BCF4', '#ffffff'], disableForReducedMotion: true });
+    if (lib.settings.showStoryAfterLog && (rating > 0 || entry.review)) {
+      const storyReview: Review = {
+        id: `rev-${entry.id}`,
+        logId: entry.id,
+        bookId: book.id,
+        userId: lib.profile.id,
+        userName: lib.profile.name,
+        userAvatar: lib.profile.avatar,
+        userHandle: lib.profile.handle,
+        rating,
+        liked,
+        content: entry.review || '',
+        date: new Date().toISOString(),
+        hasSpoilers: spoilers,
+        likesCount: 0,
+        commentsCount: 0,
+      };
+      ui.replaceTop({ type: 'share', bookId: book.id, review: storyReview, justLogged: true });
+    } else {
+      ui.toast(`Logged "${book.title}" to your diary`);
+      ui.close();
+    }
   };
 
-  const filteredBooks = books.filter(b => 
-    b.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    b.author.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const remove = async () => {
+    if (!existing || !book) return;
+    const ok = await ui.confirm({ title: 'Delete this diary entry?', body: `Your ${book.title} entry${existing.review ? ' and its review' : ''} will be removed.`, confirmLabel: 'Delete', destructive: true });
+    if (!ok) return;
+    lib.actions.deleteLog(existing.id);
+    ui.toast('Diary entry deleted', {
+      action: { label: 'Undo', onClick: () => lib.actions.restoreLog(existing) },
+    });
+    ui.close();
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto" id="log-book-modal">
-      <div className="relative w-full max-w-lg bg-[#141b24] border border-[#273648] rounded-2xl shadow-2xl overflow-hidden my-6">
-        {/* Modal Top Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#232f3e] bg-[#10151c]">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#15E558]" />
-            <h2 className="text-sm font-bold font-mono text-white uppercase tracking-wider">
-              {isSelectingBook ? 'Select a Book to Log' : 'Log or Review Book'}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 rounded-full text-[#8fa0b5] hover:text-white hover:bg-[#232f3e]"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <Sheet z={z} onClose={ui.close} label={existing ? 'Edit diary entry' : 'Log a book'}>
+      <div className="flex items-center justify-between px-5 pt-2 pb-3 border-b border-[#232f3e]">
+        <h2 className="text-sm font-bold text-white">{!book ? 'Log a book' : existing ? 'Edit entry' : 'I read…'}</h2>
+        <button type="button" onClick={ui.close} aria-label="Close" className="p-1.5 rounded-full text-[#8fa0b5] hover:text-white hover:bg-[#232f3e]">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
 
-        {/* Book Selector View */}
-        {isSelectingBook ? (
-          <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-            <input
-              type="text"
-              placeholder="Search by title or author..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg bg-[#1a2330] border border-[#273648] text-white placeholder-[#6c7f96] text-sm focus:outline-none focus:border-[#15E558]"
-              autoFocus
-            />
-            <div className="space-y-2">
-              {filteredBooks.map((b) => (
-                <div
-                  key={b.id}
-                  onClick={() => {
-                    setSelectedBook(b);
-                    setIsSelectingBook(false);
-                  }}
-                  className="flex items-center gap-3 p-2.5 rounded-xl border border-[#222e3d] bg-[#18212c] hover:border-[#15E558] hover:bg-[#1f2b3a] cursor-pointer transition-all"
-                >
-                  <img src={b.coverImage} alt={b.title} className="w-10 h-14 object-cover rounded shadow" />
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-bold text-white truncate">{b.title}</h4>
-                    <p className="text-xs text-[#8fa0b5] truncate">{b.author} ({b.year})</p>
-                  </div>
-                </div>
-              ))}
+      {!book ? (
+        <BookPicker
+          onPick={(b) => {
+            lib.actions.upsertBooks([b]);
+            setBook(b);
+            setLiked(lib.likedIds.includes(b.id));
+            setReRead(lib.logs.some((l) => l.bookId === b.id));
+          }}
+        />
+      ) : (
+        <form onSubmit={save} className="p-5 space-y-5">
+          <div className="flex items-center gap-3.5">
+            <span className="w-14 aspect-[2/3] rounded-md overflow-hidden shrink-0 border border-[#334459] bg-[#1a2330]">
+              <BookCover book={book} />
+            </span>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-bold text-white leading-tight">{book.title}</h3>
+              <p className="text-xs text-[#8fa0b5]">{book.author}{book.year ? ` · ${book.year}` : ''}</p>
+              {!existing && !bookId && (
+                <button type="button" onClick={() => setBook(null)} className="text-[11px] text-[#40BCF4] font-medium mt-1">Change book</button>
+              )}
             </div>
           </div>
-        ) : (
-          /* Main Logging Form */
-          <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
-            {/* Selected Book Header banner */}
-            {selectedBook && (
-              <div className="flex items-center gap-4 p-3 rounded-xl bg-[#1a2330] border border-[#273648]">
-                <img
-                  src={selectedBook.coverImage}
-                  alt={selectedBook.title}
-                  className="w-12 h-16 object-cover rounded-md shadow-md border border-[#334459]"
-                />
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-bold text-white truncate">{selectedBook.title}</h3>
-                  <p className="text-xs text-[#8fa0b5]">{selectedBook.author} • {selectedBook.year}</p>
-                  <button
-                    type="button"
-                    onClick={() => setIsSelectingBook(true)}
-                    className="text-[11px] text-[#40BCF4] hover:underline font-medium mt-1"
-                  >
-                    Change book
-                  </button>
-                </div>
-              </div>
-            )}
 
-            {/* Star Rating & Like Heart */}
-            <div className="p-4 rounded-xl bg-[#18212d] border border-[#233142] flex items-center justify-between">
-              <div>
-                <span className="text-xs font-mono font-bold text-[#8fa0b5] uppercase block mb-1.5">Rating</span>
-                <RatingStars
-                  rating={rating}
-                  size="lg"
-                  interactive={true}
-                  onRatingChange={(newVal) => setRating(newVal)}
-                  showNumber={true}
-                />
-              </div>
-
-              <div className="border-l border-[#2d3e52] pl-4 flex flex-col items-center">
-                <span className="text-xs font-mono font-bold text-[#8fa0b5] uppercase block mb-1.5">Like</span>
-                <button
-                  type="button"
-                  onClick={() => setLiked(!liked)}
-                  className={`p-2.5 rounded-full transition-all ${
-                    liked 
-                      ? 'bg-[#FF8000]/20 text-[#FF8000] scale-110' 
-                      : 'bg-[#222e3d] text-[#6c7f96] hover:text-white'
-                  }`}
-                  title="Like this book"
-                >
-                  <Heart className={`w-5 h-5 ${liked ? 'fill-[#FF8000]' : ''}`} />
-                </button>
-              </div>
-            </div>
-
-            {/* Reading Format Selector */}
+          <div className="flex items-end justify-between gap-3 p-4 rounded-xl bg-[#18212d] border border-[#233142]">
             <div>
-              <label className="block text-xs font-mono font-bold text-[#8fa0b5] uppercase tracking-wider mb-2">
-                Reading Format
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFormat('physical')}
-                  className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg border text-xs font-semibold transition-all ${
-                    format === 'physical'
-                      ? 'border-[#15E558] bg-[#15E558]/10 text-white'
-                      : 'border-[#273648] bg-[#1a2330] text-[#8fa0b5] hover:text-white'
-                  }`}
-                >
-                  <BookOpen className="w-3.5 h-3.5" />
-                  Physical
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormat('ebook')}
-                  className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg border text-xs font-semibold transition-all ${
-                    format === 'ebook'
-                      ? 'border-[#40BCF4] bg-[#40BCF4]/10 text-white'
-                      : 'border-[#273648] bg-[#1a2330] text-[#8fa0b5] hover:text-white'
-                  }`}
-                >
-                  <Tablet className="w-3.5 h-3.5" />
-                  E-Reader
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormat('audiobook')}
-                  className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg border text-xs font-semibold transition-all ${
-                    format === 'audiobook'
-                      ? 'border-[#FF8000] bg-[#FF8000]/10 text-white'
-                      : 'border-[#273648] bg-[#1a2330] text-[#8fa0b5] hover:text-white'
-                  }`}
-                >
-                  <Headphones className="w-3.5 h-3.5" />
-                  Audiobook
-                </button>
-              </div>
+              <span className="text-[11px] font-bold text-[#8fa0b5] uppercase tracking-wider block mb-1.5">Rating</span>
+              <RatingStars rating={rating} size="lg" interactive onRatingChange={setRating} showNumber label="Your rating" />
             </div>
+            <button
+              type="button"
+              onClick={() => setLiked(!liked)}
+              aria-pressed={liked}
+              aria-label={liked ? 'Unlike' : 'Like'}
+              className={`p-3 rounded-full transition-all ${liked ? 'bg-[#FF8000]/20 text-[#FF8000] scale-110' : 'bg-[#222e3d] text-[#6c7f96] hover:text-white'}`}
+            >
+              <Heart className={`w-6 h-6 ${liked ? 'fill-[#FF8000]' : ''}`} />
+            </button>
+          </div>
 
-            {/* Date Finished */}
-            <div>
-              <label className="block text-xs font-mono font-bold text-[#8fa0b5] uppercase tracking-wider mb-1.5">
-                Date Finished
-              </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  value={dateFinished}
-                  onChange={(e) => setDateFinished(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-lg bg-[#1a2330] border border-[#273648] text-white text-xs font-mono focus:outline-none focus:border-[#15E558]"
-                />
-                <Calendar className="w-4 h-4 text-[#8fa0b5] absolute right-3 top-2.5 pointer-events-none" />
-              </div>
-            </div>
-
-            {/* Review textarea */}
-            <div>
-              <label className="block text-xs font-mono font-bold text-[#8fa0b5] uppercase tracking-wider mb-1.5">
-                Review (Optional)
-              </label>
-              <textarea
-                value={review}
-                onChange={(e) => setReview(e.target.value)}
-                placeholder="Share your thoughts, favorite quotes, or critical reflections..."
-                rows={3}
-                className="w-full px-3.5 py-2.5 rounded-lg bg-[#1a2330] border border-[#273648] text-white placeholder-[#6c7f96] text-xs focus:outline-none focus:border-[#15E558] resize-none"
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="block text-[11px] font-bold text-[#8fa0b5] uppercase tracking-wider mb-1.5">Finished</span>
+              <input
+                type="date"
+                value={date}
+                max={todayISO()}
+                onChange={(e) => setDate(e.target.value)}
+                required
+                className="w-full px-3 py-2.5 rounded-lg bg-[#1a2330] border border-[#273648] text-white text-xs font-mono focus:outline-none focus:border-[#15E558] [color-scheme:dark]"
               />
-            </div>
-
-            {/* Options Checkboxes */}
-            <div className="flex flex-wrap items-center gap-4 text-xs">
-              <label className="flex items-center gap-2 cursor-pointer text-[#a5b6c9] hover:text-white">
-                <input
-                  type="checkbox"
-                  checked={hasSpoilers}
-                  onChange={(e) => setHasSpoilers(e.target.checked)}
-                  className="rounded border-[#34465c] bg-[#1a2330] text-[#15E558] focus:ring-0"
-                />
-                <AlertTriangle className="w-3.5 h-3.5 text-[#FF8000]" />
-                Contains Spoilers
-              </label>
-
-              <label className="flex items-center gap-2 cursor-pointer text-[#a5b6c9] hover:text-white">
-                <input
-                  type="checkbox"
-                  checked={isReRead}
-                  onChange={(e) => setIsReRead(e.target.checked)}
-                  className="rounded border-[#34465c] bg-[#1a2330] text-[#15E558] focus:ring-0"
-                />
-                <RefreshCw className="w-3.5 h-3.5 text-[#40BCF4]" />
-                Re-read
-              </label>
-            </div>
-
-            {/* Tags */}
+            </label>
             <div>
-              <label className="block text-xs font-mono font-bold text-[#8fa0b5] uppercase tracking-wider mb-1.5">
-                Tags
-              </label>
+              <span className="block text-[11px] font-bold text-[#8fa0b5] uppercase tracking-wider mb-1.5">Format</span>
+              <div className="grid grid-cols-3 gap-1" role="radiogroup" aria-label="Format">
+                {FORMATS.map(({ id, label, icon: Icon, tint }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="radio"
+                    aria-checked={format === id}
+                    onClick={() => setFormat(id)}
+                    title={label}
+                    className={`flex flex-col items-center py-1.5 rounded-lg border text-[10px] font-semibold transition-all ${
+                      format === id ? 'text-white' : 'border-[#273648] bg-[#1a2330] text-[#6c7f96]'
+                    }`}
+                    style={format === id ? { borderColor: tint, background: `${tint}1a` } : undefined}
+                  >
+                    <Icon className="w-3.5 h-3.5 mb-0.5" />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <label className="block">
+            <span className="block text-[11px] font-bold text-[#8fa0b5] uppercase tracking-wider mb-1.5">Review</span>
+            <textarea
+              value={review}
+              onChange={(e) => setReview(e.target.value)}
+              placeholder="Add a review… (optional)"
+              rows={4}
+              maxLength={5000}
+              className="w-full px-3.5 py-3 rounded-lg bg-[#1a2330] border border-[#273648] text-white placeholder-[#6c7f96] text-sm focus:outline-none focus:border-[#15E558] resize-y"
+            />
+          </label>
+
+          <div className="flex flex-wrap items-center gap-4 text-xs">
+            <label className="flex items-center gap-2 cursor-pointer text-[#a5b6c9]">
+              <input type="checkbox" checked={spoilers} onChange={(e) => setSpoilers(e.target.checked)} className="accent-[#15E558] w-4 h-4" />
+              <AlertTriangle className="w-3.5 h-3.5 text-[#FF8000]" /> Contains spoilers
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer text-[#a5b6c9]">
+              <input type="checkbox" checked={reRead} onChange={(e) => setReRead(e.target.checked)} className="accent-[#15E558] w-4 h-4" />
+              <RefreshCw className="w-3.5 h-3.5 text-[#40BCF4]" /> I've read this before
+            </label>
+          </div>
+
+          <div>
+            <span className="block text-[11px] font-bold text-[#8fa0b5] uppercase tracking-wider mb-1.5">Tags</span>
+            {tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {tags.map((t) => (
-                  <span
-                    key={t}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] bg-[#222e3d] text-[#40BCF4] border border-[#2e3f53]"
-                  >
+                  <span key={t} className="inline-flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-full text-[11px] bg-[#222e3d] text-[#40BCF4] border border-[#2e3f53]">
                     #{t}
-                    <button type="button" onClick={() => handleRemoveTag(t)}>
-                      <X className="w-3 h-3 hover:text-white" />
+                    <button type="button" onClick={() => setTags(tags.filter((x) => x !== t))} aria-label={`Remove tag ${t}`} className="p-0.5 hover:text-white">
+                      <X className="w-3 h-3" />
                     </button>
                   </span>
                 ))}
               </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Add custom tag (e.g. cozy-vibes)..."
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddTag(); } }}
-                  className="flex-1 px-3 py-1.5 rounded-lg bg-[#1a2330] border border-[#273648] text-white text-xs placeholder-[#6c7f96] focus:outline-none focus:border-[#15E558]"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddTag}
-                  className="px-3 py-1.5 rounded-lg bg-[#243344] text-xs font-semibold text-white hover:bg-[#31445b]"
-                >
-                  Add
-                </button>
-              </div>
+            )}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="e.g. cozy, book-club"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    addTag();
+                  }
+                }}
+                aria-label="Add a tag"
+                className="flex-1 px-3 py-2 rounded-lg bg-[#1a2330] border border-[#273648] text-white text-xs placeholder-[#6c7f96] focus:outline-none focus:border-[#15E558]"
+              />
+              <button type="button" onClick={addTag} disabled={!tagInput.trim()} className="px-3 py-2 rounded-lg bg-[#243344] text-xs font-semibold text-white disabled:opacity-40">
+                Add
+              </button>
             </div>
+          </div>
 
-            {/* Action Buttons */}
-            <div className="pt-3 border-t border-[#232f3e] flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 rounded-lg border border-[#2a3848] text-xs font-bold text-[#8fa0b5] hover:text-white transition-colors"
-              >
-                Cancel
+          <div className="pt-2 flex items-center gap-2">
+            {existing && (
+              <button type="button" onClick={remove} aria-label="Delete entry" className="p-3 rounded-xl border border-[#4a2a2a] text-[#ff7b7b] hover:bg-[#3a1c1c]">
+                <Trash2 className="w-4 h-4" />
               </button>
-              <button
-                type="submit"
-                className="px-6 py-2 rounded-lg bg-[#15E558] hover:bg-[#1cf363] text-black text-xs font-bold font-mono uppercase tracking-wider transition-all shadow-[0_2px_12px_rgba(21,229,88,0.3)] flex items-center gap-1.5"
-              >
-                <Check className="w-4 h-4 stroke-[3]" />
-                Save Entry
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-    </div>
+            )}
+            <button
+              type="submit"
+              className="flex-1 py-3 rounded-xl bg-[#15E558] hover:bg-[#1cf363] text-black text-sm font-bold transition-all shadow-[0_2px_12px_rgba(21,229,88,0.3)] flex items-center justify-center gap-1.5 active:scale-[0.98]"
+            >
+              <Check className="w-4 h-4 stroke-[3]" />
+              {existing ? 'Save changes' : 'Save to diary'}
+            </button>
+          </div>
+        </form>
+      )}
+    </Sheet>
   );
 };

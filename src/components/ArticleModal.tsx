@@ -1,116 +1,109 @@
 import React from 'react';
-import { Article, Book } from '../types';
-import { BookCoverCard } from './BookCoverCard';
-import { X, Heart } from 'lucide-react';
+import { Heart, Share2, ArrowLeft } from 'lucide-react';
+import { useLibrary } from '../state/library';
+import { useUI } from '../state/ui';
+import { journalArticles } from '../data/seed';
+import { shareOrCopy } from '../lib/share';
+import { Avatar, BookPoster, EmptyState, OverlayScreen, ScreenHeader } from './ui';
 
-interface ArticleModalProps {
-  article: Article | null;
-  isOpen: boolean;
-  onClose: () => void;
-  featuredBooks: Book[];
-  onSelectBook: (book: Book) => void;
-  onToggleWatchlist: (book: Book, e: React.MouseEvent) => void;
-  watchlistBookIds: string[];
+// Journal copy uses *asterisks* for titles; render them as italics.
+function renderInline(text: string) {
+  return text.split(/(\*[^*]+\*)/g).map((part, i) =>
+    part.startsWith('*') && part.endsWith('*') ? <em key={i} className="font-serif text-white">{part.slice(1, -1)}</em> : <React.Fragment key={i}>{part}</React.Fragment>,
+  );
 }
 
-export const ArticleModal: React.FC<ArticleModalProps> = ({
-  article,
-  isOpen,
-  onClose,
-  featuredBooks,
-  onSelectBook,
-  onToggleWatchlist,
-  watchlistBookIds,
-}) => {
-  if (!isOpen || !article) return null;
+export const ArticleModal: React.FC<{ z: number; articleId: string }> = ({ z, articleId }) => {
+  const lib = useLibrary();
+  const ui = useUI();
+  const article = journalArticles.find((a) => a.id === articleId);
+
+  if (!article) {
+    return (
+      <OverlayScreen z={z} label="Article">
+        <ScreenHeader title="Journal" onBack={ui.close} />
+        <EmptyState title="Article not found" />
+      </OverlayScreen>
+    );
+  }
+
+  const liked = lib.likedArticleIds.includes(article.id);
+  const featured = lib.resolve(article.featuredBookIds);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/90 backdrop-blur-md overflow-y-auto" id="article-modal">
-      <div className="relative w-full max-w-2xl bg-[#121820] border-x border-b border-[#232f3e] min-h-screen pb-24 text-white shadow-2xl">
-        {/* Floating Close */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="fixed top-4 right-4 sm:right-auto sm:left-[calc(50%+280px)] z-50 p-2.5 rounded-full bg-black/80 text-white hover:bg-[#15E558] hover:text-black border border-white/20 transition-all shadow-xl"
-        >
-          <X className="w-5 h-5 stroke-[2.5]" />
-        </button>
-
-        {/* Cover Hero */}
-        <div className="relative h-60 w-full overflow-hidden bg-[#18222e]">
-          <img src={article.coverImage} alt={article.title} className="w-full h-full object-cover opacity-60" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#121820] via-[#121820]/40 to-transparent" />
-          <div className="absolute top-4 left-6">
-            <span className="px-2.5 py-1 rounded bg-[#15E558] text-black font-mono text-[10px] font-bold uppercase tracking-wider">
-              Letterbook Journal
-            </span>
+    <OverlayScreen z={z} label={article.title} className="pb-safe">
+      <div className="relative h-60 w-full overflow-hidden bg-[#18222e]">
+        <img src={article.coverImage} alt="" className="w-full h-full object-cover opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#14181c] via-[#14181c]/40 to-transparent" />
+        <div className="absolute top-0 inset-x-0 pt-safe">
+          <div className="px-3 pt-3 flex items-center justify-between">
+            <button type="button" onClick={ui.close} aria-label="Back" className="p-2 rounded-full bg-black/50 backdrop-blur-md text-white border border-white/10">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                const r = await shareOrCopy({ title: article.title, text: `${article.title} — ${article.subtitle}` });
+                if (r === 'copied') ui.toast('Copied to clipboard');
+              }}
+              aria-label="Share article"
+              className="p-2 rounded-full bg-black/50 backdrop-blur-md text-white border border-white/10"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
           </div>
-        </div>
-
-        {/* Article Body */}
-        <div className="px-6 -mt-10 relative space-y-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
-              {article.title}
-            </h1>
-            <p className="text-sm text-[#9eb0c3] font-serif italic mt-2">
-              {article.subtitle}
-            </p>
-          </div>
-
-          {/* Author line */}
-          <div className="flex items-center justify-between py-3 border-y border-[#232f3e] text-xs text-[#8fa0b5]">
-            <div className="flex items-center gap-2.5">
-              <img
-                src={article.authorAvatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"}
-                alt={article.author || "Author"}
-                className="w-8 h-8 rounded-full object-cover border border-[#394c61]"
-              />
-              <div>
-                <span className="font-bold text-white block">{article.author || "Author"}</span>
-                <div className="flex items-center gap-2 text-[10px] text-[#6c7f96]">
-                  <span>{article.date}</span>
-                  <span>•</span>
-                  <span>{article.readTime}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5 text-xs text-[#FF8000]">
-              <Heart className="w-4 h-4 fill-[#FF8000]" />
-              <span className="font-mono">{article.likesCount}</span>
-            </div>
-          </div>
-
-          {/* Paragraphs */}
-          <div className="space-y-4 text-sm leading-relaxed text-[#d0dbe7] font-light">
-            {article.content.map((p, idx) => (
-              <p key={idx}>{p}</p>
-            ))}
-          </div>
-
-          {/* Featured Books in Article */}
-          {featuredBooks.length > 0 && (
-            <div className="pt-6 border-t border-[#232f3e] space-y-3">
-              <h3 className="text-xs font-mono font-bold text-[#8fa0b5] uppercase tracking-wider">
-                Books Discussed in this Essay
-              </h3>
-              <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                {featuredBooks.map(b => (
-                  <BookCoverCard
-                    key={b.id}
-                    book={b}
-                    size="sm"
-                    isWatchlisted={watchlistBookIds.includes(b.id)}
-                    onSelect={onSelectBook}
-                    onToggleWatchlist={onToggleWatchlist}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
-    </div>
+
+      <article className="px-5 -mt-12 relative space-y-5 pb-10">
+        <span className="inline-block px-2 py-0.5 rounded bg-[#15E558] text-black font-mono text-[10px] font-bold uppercase tracking-wider">Letterbook Journal</span>
+        <header>
+          <h1 className="text-2xl font-extrabold text-white tracking-tight leading-tight">{article.title}</h1>
+          <p className="text-sm text-[#9eb0c3] font-serif italic mt-2">{article.subtitle}</p>
+        </header>
+
+        <div className="flex items-center justify-between py-3 border-y border-[#232f3e] text-xs">
+          <div className="flex items-center gap-2.5">
+            <Avatar src={article.authorAvatar} name={article.author} className="w-8 h-8" />
+            <div>
+              <span className="font-bold text-white block">{article.author}</span>
+              <span className="text-[10px] text-[#6c7f96]">{article.date} · {article.readTime}</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => lib.actions.toggleArticleLike(article.id)}
+            aria-pressed={liked}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border ${liked ? 'border-[#FF8000] text-[#FF8000] bg-[#FF8000]/10' : 'border-[#293849] text-[#8fa0b5]'}`}
+          >
+            <Heart className={`w-4 h-4 ${liked ? 'fill-[#FF8000]' : ''}`} />
+            <span className="font-mono">{article.likesCount + (liked ? 1 : 0)}</span>
+          </button>
+        </div>
+
+        <div className="space-y-4 text-[15px] leading-relaxed text-[#d0dbe7]">
+          {article.content.map((p, idx) => <p key={idx}>{renderInline(p)}</p>)}
+        </div>
+
+        {featured.length > 0 && (
+          <section className="pt-5 border-t border-[#232f3e] space-y-3" aria-label="Books in this article">
+            <h2 className="text-xs font-bold text-[#8fa0b5] uppercase tracking-wider">Books in this piece</h2>
+            <div className="grid grid-cols-3 gap-3">
+              {featured.map((b) => (
+                <BookPoster
+                  key={b.id}
+                  book={b}
+                  showTitle
+                  onSelect={(x) => ui.open({ type: 'book', book: x })}
+                  onLongPress={(x) => ui.open({ type: 'quickMenu', bookId: x.id })}
+                  isWatchlisted={lib.watchlistIds.includes(b.id)}
+                  onToggleWatchlist={(x) => ui.toast(lib.actions.toggleWatchlist(x) ? 'Added to watchlist' : 'Removed from watchlist')}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+      </article>
+    </OverlayScreen>
   );
 };

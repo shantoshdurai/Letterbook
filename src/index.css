@@ -1,11 +1,60 @@
 @import "tailwindcss";
 
+@theme {
+  --animate-fadeIn: fadeIn 180ms ease-out both;
+  --animate-slideUp: slideUp 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-toastIn: toastIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, 12px) scale(0.97); }
+    to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  }
+}
+
 @layer base {
+  html {
+    background-color: #0d1013;
+    -webkit-text-size-adjust: 100%;
+  }
   body {
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: #121820;
+    background-color: #0d1013;
     color: #e5ebf2;
     -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+    min-height: 100dvh;
+  }
+  ::selection {
+    background: #15E558;
+    color: #000;
+  }
+  button, [role='button'] {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  :focus-visible {
+    outline: 2px solid #40BCF4;
+    outline-offset: 2px;
+  }
+  img {
+    -webkit-user-drag: none;
+  }
+  /* iOS zooms into inputs under 16px; keep form fields at 16px on touch devices. */
+  @media (pointer: coarse) {
+    input, textarea, select {
+      font-size: 16px !important;
+    }
   }
 }
 
@@ -15,6 +64,20 @@
 
 .font-mono {
   font-family: 'JetBrains Mono', monospace;
+}
+
+/* Safe areas for notched phones / installed PWA / WebView shells */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.bottom-nav-offset {
+  bottom: calc(4.5rem + env(safe-area-inset-bottom));
+}
+.screen-bottom-pad {
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom));
 }
 
 /* Custom scrollbars */
@@ -52,4 +115,12 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

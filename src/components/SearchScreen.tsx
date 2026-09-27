@@ -1,303 +1,214 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Search, SlidersHorizontal, X, Loader2, RefreshCw, SearchX } from 'lucide-react';
 import { Book } from '../types';
-import { FilterState } from './FilterModal';
-import { Search, SlidersHorizontal, Bookmark, ChevronRight, X } from 'lucide-react';
-import { useLongPress } from '../hooks/useLongPress';
+import { useLibrary } from '../state/library';
+import { useUI } from '../state/ui';
+import { useDebounced } from '../hooks/useBooks';
+import { searchBooks, GENRES, peekCachedBooks, bookMatchesGenre } from '../lib/openLibrary';
+import { applyFilters, activeFilterCount, DEFAULT_FILTERS, FilterState } from '../lib/filters';
+import { seedBooks } from '../data/seed';
+import { FilterModal } from './FilterModal';
+import { BookPoster, EmptyState, PosterSkeleton, SectionHeader } from './ui';
 
-interface SearchScreenProps {
-  books: Book[];
-  watchlistBookIds: string[];
-  readBookIds?: string[];
-  likedBookIds?: string[];
-  filters?: FilterState;
-  onSelectBook: (book: Book) => void;
-  onLongPressBook?: (book: Book) => void;
-  onToggleWatchlist: (book: Book, e: React.MouseEvent) => void;
-  onOpenFilterModal: () => void;
-  availableGenres?: string[];
-  onQuickGenreSelect: (genre: string) => void;
-}
+const GENRE_TINTS = ['#15E558', '#40BCF4', '#FF8000', '#c084fc', '#f472b6', '#facc15'];
 
-const SearchBookPoster: React.FC<{
-  book: Book;
-  isWatchlisted: boolean;
-  onSelect: (book: Book) => void;
-  onLongPress?: (book: Book) => void;
-  onToggleWatchlist: (book: Book, e: React.MouseEvent) => void;
-  showTitle?: boolean;
-}> = ({ book, isWatchlisted, onSelect, onLongPress, onToggleWatchlist, showTitle }) => {
-  const longPressProps = useLongPress({
-    onLongPress: () => onLongPress?.(book),
-    onClick: () => onSelect(book),
-    threshold: 380,
-  });
-
-  return (
-    <div
-      {...longPressProps}
-      className="group relative aspect-[2/3] rounded-md overflow-hidden bg-[#1a2330] border border-[#253342] hover:border-[#15E558] transition-all cursor-pointer shadow-md select-none active:scale-95"
-    >
-      <img
-        src={book.coverImage}
-        alt={book.title}
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200 pointer-events-none"
-        loading="lazy"
-      />
-      <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-r from-black/50 to-transparent pointer-events-none" />
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleWatchlist(book, e);
-        }}
-        className={`absolute top-1 right-1 p-1 rounded backdrop-blur-md z-10 ${
-          isWatchlisted ? 'bg-[#40BCF4] text-black' : 'bg-black/60 text-white hover:text-[#15E558]'
-        }`}
-      >
-        <Bookmark className={`w-3 h-3 ${isWatchlisted ? 'fill-black' : ''}`} />
-      </button>
-
-      {showTitle && (
-        <div className="absolute inset-x-0 bottom-0 p-1.5 bg-gradient-to-t from-black/90 via-black/60 to-transparent pointer-events-none">
-          <p className="text-[10px] font-bold text-white truncate">{book.title}</p>
-          <p className="text-[9px] text-[#8fa0b5] truncate">{book.author}</p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export const SearchScreen: React.FC<SearchScreenProps> = ({
-  books,
-  watchlistBookIds,
-  onSelectBook,
-  onLongPressBook,
-  onToggleWatchlist,
-  onOpenFilterModal,
-  onQuickGenreSelect,
-}) => {
+export const SearchScreen: React.FC<{ active: boolean }> = ({ active }) => {
+  const lib = useLibrary();
+  const ui = useUI();
   const [query, setQuery] = useState('');
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+  const [showFilters, setShowFilters] = useState(false);
+  const [remote, setRemote] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const debounced = useDebounced(query.trim(), 400);
 
-  // Sample Recently Searched Books (matching Screenshot 4)
-  const recentlySearched = [books[0], books[1], books[4]];
-
-  // Discover genres definition with cover trios matching Screenshot 4
-  const genreCards = [
-    {
-      name: 'Sci-Fi',
-      covers: [
-        books[0]?.coverImage || 'https://images.unsplash.com/photo-1532012164546-f432f2e3dd45?w=300',
-        books[4]?.coverImage || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300',
-        books[1]?.coverImage || 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300',
-      ]
-    },
-    {
-      name: 'Dark Academia',
-      covers: [
-        books[2]?.coverImage || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300',
-        books[5]?.coverImage || 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=300',
-        books[0]?.coverImage || 'https://images.unsplash.com/photo-1532012164546-f432f2e3dd45?w=300',
-      ]
-    },
-    {
-      name: 'Literary Fiction',
-      covers: [
-        books[1]?.coverImage || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300',
-        books[3]?.coverImage || 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=300',
-        books[6]?.coverImage || 'https://images.unsplash.com/photo-1532012164546-f432f2e3dd45?w=300',
-      ]
-    },
-    {
-      name: 'Fantasy',
-      covers: [
-        books[4]?.coverImage || 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300',
-        books[0]?.coverImage || 'https://images.unsplash.com/photo-1532012164546-f432f2e3dd45?w=300',
-        books[2]?.coverImage || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300',
-      ]
-    },
-    {
-      name: 'Satire & Comedy',
-      covers: [
-        books[3]?.coverImage || 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=300',
-        books[1]?.coverImage || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300',
-        books[2]?.coverImage || 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=300',
-      ]
-    },
-    {
-      name: 'Mystery & Thriller',
-      covers: [
-        books[2]?.coverImage || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=300',
-        books[4]?.coverImage || 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300',
-        books[5]?.coverImage || 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=300',
-      ]
-    },
-    {
-      name: 'Romance',
-      covers: [
-        books[1]?.coverImage || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300',
-        books[6]?.coverImage || 'https://images.unsplash.com/photo-1532012164546-f432f2e3dd45?w=300',
-        books[3]?.coverImage || 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=300',
-      ]
-    },
-    {
-      name: 'Non-Fiction',
-      covers: [
-        books[5]?.coverImage || 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=300',
-        books[0]?.coverImage || 'https://images.unsplash.com/photo-1532012164546-f432f2e3dd45?w=300',
-        books[1]?.coverImage || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300',
-      ]
+  useEffect(() => {
+    if (debounced.length < 2) {
+      setRemote([]);
+      setError(null);
+      setLoading(false);
+      return;
     }
-  ];
+    const ctrl = new AbortController();
+    setLoading(true);
+    setError(null);
+    searchBooks(debounced, { limit: 40, signal: ctrl.signal })
+      .then(setRemote)
+      .catch((err: Error) => {
+        if (err.name !== 'AbortError') setError(navigator.onLine === false ? "You're offline. Showing books already on your device." : 'Search is unavailable right now.');
+      })
+      .finally(() => {
+        if (!ctrl.signal.aborted) setLoading(false);
+      });
+    return () => ctrl.abort();
+  }, [debounced, attempt]);
 
-  // Filtering for active query
-  const filteredBooks = books.filter((book) => {
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      const matchTitle = book.title.toLowerCase().includes(q);
-      const matchAuthor = book.author.toLowerCase().includes(q);
-      const matchGenre = book.genres.some(g => g.toLowerCase().includes(q));
-      if (!matchTitle && !matchAuthor && !matchGenre) return false;
-    }
-    return true;
-  });
+  const ctx = useMemo(() => ({ readIds: new Set(lib.readIds), watchlistIds: new Set(lib.watchlistIds) }), [lib.readIds, lib.watchlistIds]);
+
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const local = Object.values(lib.catalog).filter(
+      (b) => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q) || b.genres.some((g) => g.toLowerCase().includes(q)),
+    );
+    const seen = new Set(local.map((b) => b.id));
+    // Prefer the catalog copy (it may carry a custom cover) for remote hits too.
+    const merged = [...local, ...remote.filter((b) => !seen.has(b.id)).map((b) => lib.catalog[b.id] || b)];
+    return applyFilters(merged, filters, ctx);
+  }, [query, remote, lib.catalog, filters, ctx]);
+
+  const recent = lib.resolve(lib.recentBookIds);
+  const filterCount = activeFilterCount(filters);
+
+  const openBook = (b: Book) => {
+    lib.actions.addRecent(b);
+    ui.open({ type: 'book', book: b });
+  };
+  const longPress = (b: Book) => {
+    lib.actions.upsertBooks([b]);
+    ui.open({ type: 'quickMenu', bookId: b.id });
+  };
+  const toggleWatchlist = (b: Book) => {
+    const added = lib.actions.toggleWatchlist(b);
+    ui.toast(added ? `Added "${b.title}" to your watchlist` : `Removed "${b.title}" from your watchlist`);
+  };
 
   return (
-    <div className="min-h-screen bg-[#14181c] text-white select-none pb-24" id="letterboxd-search-screen">
-      {/* Top Header matching Screenshot 4 */}
-      <header className="px-4 py-3 flex items-center justify-between sticky top-0 z-30 bg-[#14181c]/95 backdrop-blur-md border-b border-[#202934]">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold text-white tracking-tight">Search</h1>
+    <div className="min-h-[100dvh] bg-[#14181c] text-white screen-bottom-pad" hidden={!active}>
+      <header className="sticky top-0 z-30 bg-[#14181c]/95 backdrop-blur-md border-b border-[#202934] pt-safe">
+        <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+          <h1 className="text-2xl font-bold tracking-tight">Search</h1>
+          <button
+            type="button"
+            onClick={() => setShowFilters(true)}
+            aria-label={filterCount ? `Filters, ${filterCount} active` : 'Filters'}
+            className="relative p-2 rounded-full text-[#8fa0b5] hover:text-white hover:bg-[#202934]"
+          >
+            <SlidersHorizontal className="w-5 h-5" />
+            {filterCount > 0 && (
+              <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#15E558] text-black text-[9px] font-bold flex items-center justify-center">{filterCount}</span>
+            )}
+          </button>
         </div>
-
-        <button
-          type="button"
-          onClick={onOpenFilterModal}
-          className="p-1.5 rounded-full text-[#8fa0b5] hover:text-white hover:bg-[#202934] transition-colors"
-          title="Filter search"
-        >
-          <SlidersHorizontal className="w-5 h-5" />
-        </button>
+        <div className="px-4 pt-1 pb-3">
+          <div className="relative">
+            <Search className="w-4 h-4 text-[#748393] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search books, authors, genres…"
+              aria-label="Search books"
+              enterKeyHint="search"
+              className="w-full pl-10 pr-10 py-2.5 rounded-full bg-[#242e3a] border border-[#313e4e] text-sm text-white placeholder-[#748393] focus:outline-none focus:border-[#15E558] [&::-webkit-search-cancel-button]:hidden"
+            />
+            {loading ? (
+              <Loader2 className="w-4 h-4 text-[#8fa0b5] absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin" />
+            ) : query ? (
+              <button type="button" onClick={() => setQuery('')} aria-label="Clear search" className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full bg-[#313e4e] text-white">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            ) : null}
+          </div>
+        </div>
       </header>
 
-      {/* Search Input Bar matching Screenshot 4 */}
-      <div className="px-4 pt-3 pb-2">
-        <div className="relative">
-          <Search className="w-4 h-4 text-[#748393] absolute left-3.5 top-3 pointer-events-none" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search for books, genres, members and more"
-            className="w-full pl-10 pr-9 py-2.5 rounded-full bg-[#242e3a] border border-[#313e4e] text-xs text-white placeholder-[#748393] focus:outline-none focus:border-[#15E558] transition-colors shadow-inner"
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery('')}
-              className="absolute right-3 top-2.5 p-0.5 rounded-full bg-[#313e4e] text-white"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Query Search Results View */}
-      {query.trim().length > 0 ? (
+      {query.trim() ? (
         <div className="px-4 py-3 space-y-3">
           <div className="flex items-center justify-between text-xs text-[#8fa0b5]">
-            <span>{filteredBooks.length} results for "{query}"</span>
+            <span aria-live="polite">
+              {loading && !results.length ? 'Searching…' : `${results.length} ${results.length === 1 ? 'book' : 'books'}`}
+              {filterCount ? ' · filtered' : ''}
+            </span>
+            {filterCount > 0 && (
+              <button type="button" onClick={() => setFilters(DEFAULT_FILTERS)} className="text-[#40BCF4]">Clear filters</button>
+            )}
           </div>
-
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-            {filteredBooks.map((book) => (
-              <SearchBookPoster
+          {error && (
+            <div className="px-3 py-2 rounded-lg bg-[#1f2630] border border-[#2c3a4a] text-[11px] text-[#9fb0c3] flex items-center justify-between gap-2">
+              <span>{error}</span>
+              <button type="button" onClick={() => setAttempt((a) => a + 1)} className="text-[#40BCF4] font-semibold flex items-center gap-1 shrink-0">
+                <RefreshCw className="w-3 h-3" /> Retry
+              </button>
+            </div>
+          )}
+          <div className="grid grid-cols-3 gap-2.5">
+            {results.map((book) => (
+              <BookPoster
                 key={book.id}
                 book={book}
-                isWatchlisted={watchlistBookIds.includes(book.id)}
-                onSelect={onSelectBook}
-                onLongPress={onLongPressBook}
-                onToggleWatchlist={onToggleWatchlist}
-                showTitle={true}
+                showTitle
+                onSelect={openBook}
+                onLongPress={longPress}
+                isWatchlisted={lib.watchlistIds.includes(book.id)}
+                onToggleWatchlist={toggleWatchlist}
+                isRead={lib.readIds.includes(book.id)}
               />
             ))}
+            {loading && !results.length && Array.from({ length: 9 }, (_, i) => <PosterSkeleton key={i} />)}
           </div>
+          {!loading && !results.length && debounced === query.trim() && (
+            <EmptyState
+              icon={<SearchX className="w-10 h-10" />}
+              title="No books found"
+              body={filterCount ? 'Try removing some filters.' : 'Check the spelling, or search by author instead.'}
+            />
+          )}
         </div>
       ) : (
-        /* Default Search Screen matching Screenshot 4 */
-        <div className="space-y-6 pt-2">
-          {/* Section: Recently Searched Books > */}
-          <section className="space-y-2.5">
-            <div className="px-4 flex items-center justify-between">
-              <span className="text-sm font-bold text-white">Recently Searched Books</span>
-              <ChevronRight className="w-4 h-4 text-[#6c7f96]" />
-            </div>
+        <div className="space-y-6 pt-4">
+          {recent.length > 0 && (
+            <section className="space-y-2.5" aria-label="Recently viewed">
+              <SectionHeader
+                title="Recently viewed"
+                right={<button type="button" onClick={lib.actions.clearRecent} className="text-[11px] text-[#6c7f96] hover:text-white">Clear</button>}
+              />
+              <div className="flex gap-2.5 overflow-x-auto px-4 pb-1 no-scrollbar">
+                {recent.map((book) => (
+                  <BookPoster key={book.id} book={book} className="w-24 shrink-0" onSelect={openBook} onLongPress={longPress} isRead={lib.readIds.includes(book.id)} />
+                ))}
+              </div>
+            </section>
+          )}
 
-            <div className="flex gap-2.5 overflow-x-auto px-4 pb-1 no-scrollbar">
-              {recentlySearched.map((book) => {
-                if (!book) return null;
+          <section className="space-y-3 px-4" aria-label="Browse by genre">
+            <h2 className="text-sm font-bold text-white">Browse by genre</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {GENRES.map((genre, i) => {
+                const covers = (peekCachedBooks(`genre:${genre.name}:30`) || seedBooks.filter((b) => bookMatchesGenre(b, genre.name))).slice(0, 3);
+                const tint = GENRE_TINTS[i % GENRE_TINTS.length];
                 return (
-                  <div key={book.id} className="w-28 shrink-0">
-                    <SearchBookPoster
-                      book={book}
-                      isWatchlisted={watchlistBookIds.includes(book.id)}
-                      onSelect={onSelectBook}
-                      onLongPress={onLongPressBook}
-                      onToggleWatchlist={onToggleWatchlist}
-                      showTitle={false}
-                    />
-                  </div>
+                  <button
+                    key={genre.name}
+                    type="button"
+                    onClick={() => ui.open({ type: 'genre', name: genre.name })}
+                    className="relative h-28 p-3 rounded-xl bg-[#1a222c] border border-[#273545] hover:border-[#15E558]/70 transition-all overflow-hidden text-left group"
+                  >
+                    <div className="absolute inset-0 opacity-25" style={{ background: `radial-gradient(circle at 85% 20%, ${tint}, transparent 60%)` }} />
+                    <div className="absolute right-2 bottom-2 flex">
+                      {covers.map((b, j) => (
+                        <img
+                          key={b.id}
+                          src={b.coverImage}
+                          alt=""
+                          loading="lazy"
+                          className="w-10 aspect-[2/3] object-cover rounded shadow-lg border border-black/40 -ml-4 first:ml-0 group-hover:-translate-y-1 transition-transform"
+                          style={{ transform: `rotate(${(j - 1) * 8}deg)`, zIndex: 3 - j }}
+                        />
+                      ))}
+                    </div>
+                    <span className="relative text-sm font-bold text-white leading-tight block max-w-[60%]">{genre.name}</span>
+                  </button>
                 );
               })}
             </div>
           </section>
-
-          {/* Section: Discover Genres > (2-Column Grid with fanned covers matching Screenshot 4) */}
-          <section className="space-y-3 px-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-white">Discover Genres</span>
-              <ChevronRight className="w-4 h-4 text-[#6c7f96]" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {genreCards.map((genre) => (
-                <div
-                  key={genre.name}
-                  onClick={() => onQuickGenreSelect(genre.name)}
-                  className="p-3 rounded-xl bg-[#1a222c] border border-[#273545] hover:border-[#15E558]/80 transition-all cursor-pointer shadow-md flex flex-col items-center group"
-                >
-                  {/* Fanned 3-Book Covers Effect matching Screenshot 4 */}
-                  <div className="relative w-28 h-20 flex items-center justify-center my-1">
-                    {/* Left angled cover */}
-                    <img
-                      src={genre.covers[0]}
-                      alt=""
-                      className="absolute w-11 h-16 rounded object-cover -left-1 transform -rotate-12 shadow-lg border border-black/40 group-hover:-translate-x-1 transition-transform"
-                    />
-                    {/* Right angled cover */}
-                    <img
-                      src={genre.covers[1]}
-                      alt=""
-                      className="absolute w-11 h-16 rounded object-cover -right-1 transform rotate-12 shadow-lg border border-black/40 group-hover:translate-x-1 transition-transform"
-                    />
-                    {/* Center front cover */}
-                    <img
-                      src={genre.covers[2]}
-                      alt=""
-                      className="relative z-10 w-12 h-18 rounded object-cover shadow-2xl border border-white/10 group-hover:scale-105 transition-transform"
-                    />
-                  </div>
-
-                  {/* Genre Title */}
-                  <span className="text-xs font-bold text-white group-hover:text-[#15E558] mt-2 transition-colors">
-                    {genre.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
         </div>
       )}
+
+      {showFilters && <FilterModal z={1} filters={filters} onApply={setFilters} onClose={() => setShowFilters(false)} />}
     </div>
   );
 };

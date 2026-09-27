@@ -1,13 +1,5 @@
 export type ReadingFormat = 'physical' | 'ebook' | 'audiobook';
 
-export interface Author {
-  id: string;
-  name: string;
-  avatar: string;
-  bio: string;
-  bookCount: number;
-}
-
 export interface Review {
   id: string;
   bookId: string;
@@ -15,10 +7,10 @@ export interface Review {
   userName: string;
   userAvatar: string;
   userHandle: string;
-  rating: number; // 0.5 to 5.0
+  rating: number; // 0 (unrated) or 0.5 to 5.0
   liked: boolean;
   content: string;
-  date: string;
+  date: string; // ISO date, or a relative label for community seed content
   readDate?: string;
   format?: ReadingFormat;
   hasSpoilers: boolean;
@@ -26,18 +18,17 @@ export interface Review {
   commentsCount: number;
   tags?: string[];
   isUserLiked?: boolean;
+  logId?: string; // set on reviews written from the user's own diary entries
 }
 
 export interface Book {
   id: string;
   title: string;
-  originalTitle?: string;
   author: string;
-  authorId: string;
-  authorAvatar?: string;
+  authorKey?: string; // Open Library author key, e.g. OL7422948A
   year: number;
   coverImage: string;
-  backdropImage: string;
+  backdropImage?: string;
   synopsis: string;
   pageCount: number;
   audioLength?: string;
@@ -52,25 +43,22 @@ export interface Book {
   tagline?: string;
   isbn?: string;
   publisher?: string;
-  availableOn?: {
-    service: 'Audible' | 'Kindle' | 'Apple Books' | 'Libby' | 'Bookshop.org' | 'Local Bookstore';
-    type: 'audio' | 'ebook' | 'print' | 'library';
-    link: string;
-  }[];
+  olKey?: string; // Open Library work key, e.g. /works/OL893414W
   quotes?: string[];
 }
 
 export interface ReadingLogEntry {
   id: string;
   bookId: string;
-  dateFinished: string;
-  rating: number;
+  dateFinished: string; // YYYY-MM-DD
+  rating: number; // 0 = not rated
   liked: boolean;
   review?: string;
   hasSpoilers?: boolean;
   isReRead?: boolean;
   format: ReadingFormat;
   tags: string[];
+  createdAt?: string; // ISO timestamp
 }
 
 export interface BookList {
@@ -80,13 +68,13 @@ export interface BookList {
   creatorId: string;
   creatorName: string;
   creatorAvatar: string;
-  books: Book[];
+  bookIds: string[];
   likesCount: number;
   commentsCount: number;
   isRanked: boolean;
   isPrivate?: boolean;
   tags: string[];
-  updatedAt: string;
+  updatedAt: string; // ISO timestamp, or a relative label for community seed content
 }
 
 export interface Article {
@@ -109,47 +97,40 @@ export interface UserProfile {
   id: string;
   name: string;
   handle: string;
-  avatar: string;
+  avatar: string; // URL or data: URI; empty string falls back to initials
   bio: string;
   location: string;
   joinedYear: number;
   favoriteBookIds: string[]; // Up to 4 favorites
+  favoriteGenres: string[];
   followersCount: number;
   followingCount: number;
   readingGoal: {
     year: number;
     target: number;
-    completed: number;
   };
-  stats: {
-    booksRead: number;
-    pagesRead: number;
-    hoursListened: number;
-    listsCount: number;
-    reviewsCount: number;
-  };
-  badges: {
-    id: string;
-    name: string;
-    description: string;
-    icon: string;
-    unlockedAt: string;
-  }[];
+}
+
+export interface AppSettings {
+  spoilerShield: boolean;
+  showStoryAfterLog: boolean;
+}
+
+export interface CommunityMember {
+  id: string;
+  name: string;
+  handle: string;
+  avatar: string;
 }
 
 export interface FriendActivity {
   id: string;
-  user: {
-    id: string;
-    name: string;
-    handle: string;
-    avatar: string;
-  };
+  user: CommunityMember;
   type: 'logged' | 'reviewed' | 'liked' | 'created_list' | 'added_watchlist';
-  book?: Book;
-  list?: BookList;
+  bookId?: string;
   review?: Review;
   rating?: number;
+  liked?: boolean;
   timestamp: string;
   likesCount: number;
   isLiked?: boolean;
@@ -157,18 +138,11 @@ export interface FriendActivity {
 
 export interface NotificationItem {
   id: string;
-  user: {
-    name: string;
-    avatar: string;
-    handle: string;
-  };
-  type: 'watchlist' | 'rating' | 'list' | 'follow' | 'review' | 'like_review';
-  targetBook?: Book;
-  targetListTitle?: string;
-  rating?: number;
-  liked?: boolean;
-  reviewExcerpt?: string;
-  timestamp: string;
+  kind: 'system' | 'goal' | 'milestone' | 'list' | 'community';
+  title: string;
+  body?: string;
+  bookId?: string;
+  createdAt: string; // ISO timestamp
   isRead?: boolean;
 }
 
