@@ -87,7 +87,7 @@ export const App: React.FC = () => {
   const [isLogModalOpen, setIsLogModalOpen] = useState<boolean>(false);
   const [logPreselectedBook, setLogPreselectedBook] = useState<Book | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState<boolean>(false);
-  const [instagramStoryData, setInstagramStoryData] = useState<{ book: Book; review?: Review } | null>(null);
+  const [instagramStoryData, setInstagramStoryData] = useState<{ book: Book; review?: Review; justLogged?: boolean } | null>(null);
 
   // Filter State matching Screenshot 7
   const [filters, setFilters] = useState<FilterState>({
@@ -167,27 +167,29 @@ export const App: React.FC = () => {
       setLikedBookIds(prev => [...prev, book.id]);
     }
 
+    // The diary entry as a review, used for the review feed and the story card
+    const loggedReview: Review = {
+      id: `rev-${Date.now()}`,
+      bookId: book.id,
+      userId: profile?.id || 'user-default',
+      userName: profile?.name || 'Reader',
+      userAvatar: profile?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      userHandle: profile?.handle || '@reader',
+      rating: entry.rating,
+      liked: entry.liked,
+      content: entry.review || '',
+      date: 'Just now',
+      readDate: entry.dateFinished,
+      format: entry.format,
+      hasSpoilers: Boolean(entry.hasSpoilers),
+      likesCount: 0,
+      commentsCount: 0,
+      tags: entry.tags
+    };
+
     // Add review to list if provided
     if (entry.review) {
-      const newReview: Review = {
-        id: `rev-${Date.now()}`,
-        bookId: book.id,
-        userId: profile?.id || 'user-default',
-        userName: profile?.name || 'Reader',
-        userAvatar: profile?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-        userHandle: profile?.handle || '@reader',
-        rating: entry.rating,
-        liked: entry.liked,
-        content: entry.review,
-        date: 'Just now',
-        readDate: entry.dateFinished,
-        format: entry.format,
-        hasSpoilers: Boolean(entry.hasSpoilers),
-        likesCount: 0,
-        commentsCount: 0,
-        tags: entry.tags
-      };
-      setReviews(prev => [newReview, ...prev]);
+      setReviews(prev => [loggedReview, ...prev]);
     }
 
     // Update profile reading goal progress
@@ -205,6 +207,9 @@ export const App: React.FC = () => {
     }));
 
     showToast(`Logged "${book.title}" to your Reading Diary!`);
+
+    // Like Letterboxd, offer to share the rating to an Instagram Story right away
+    setInstagramStoryData({ book, review: loggedReview, justLogged: true });
   };
 
   // Like Review
@@ -532,6 +537,7 @@ export const App: React.FC = () => {
             onClose={() => setInstagramStoryData(null)}
             book={instagramStoryData.book}
             review={instagramStoryData.review}
+            justLogged={instagramStoryData.justLogged}
             profile={profile}
             onShowToast={showToast}
           />
