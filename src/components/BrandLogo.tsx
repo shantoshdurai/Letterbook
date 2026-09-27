@@ -13,7 +13,7 @@ export const BrandMark: React.FC<{ className?: string; title?: string }> = ({ cl
     <g transform="translate(-3.4 0.9)">
     <rect x="9" y="13" width="8" height="25" rx="2" fill="#FF8000" />
     <rect x="9" y="17" width="8" height="2.2" fill="#14181c" opacity=".35" />
-    <rect x="19" y="8" width="8" height="30" rx="2" fill="#15E558" />
+    <rect x="19" y="8" width="8" height="30" rx="2" fill="#00E054" />
     <rect x="19" y="12" width="8" height="2.2" fill="#14181c" opacity=".35" />
     <g transform="rotate(20 36.5 38)">
       <rect x="29" y="12" width="8" height="26" rx="2" fill="#40BCF4" />

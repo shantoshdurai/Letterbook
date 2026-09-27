@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { LogOut, Download, Upload, Trash2, Camera, FileSpreadsheet, ExternalLink, Loader2 } from 'lucide-react';
+import { LogOut, Download, Upload, Trash2, Camera, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { CreditsFooter } from './CreditsFooter';
 import { useLibrary, LibraryExport } from '../state/library';
 import { useUI } from '../state/ui';
 import { GENRES } from '../lib/openLibrary';
@@ -96,10 +97,14 @@ export const SettingsModal: React.FC<SettingsProps> = ({ z, onSignOut, onDeleteA
     }
   };
 
-  const exportBackup = () => {
+  const exportBackup = async () => {
     const data = lib.actions.exportData();
-    downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), `letterbook-backup-${todayISO()}.json`);
-    ui.toast(`Exported ${data.logs.length} diary entries and ${data.lists.length} lists`);
+    try {
+      const result = await downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), `letterbook-backup-${todayISO()}.json`);
+      if (result !== 'cancelled') ui.toast(`Exported ${data.logs.length} diary entries and ${data.lists.length} lists`);
+    } catch {
+      ui.toast('Could not export your backup');
+    }
   };
 
   const importBackup = async (file?: File) => {
@@ -144,7 +149,7 @@ export const SettingsModal: React.FC<SettingsProps> = ({ z, onSignOut, onDeleteA
     if (ok) onDeleteAccount();
   };
 
-  const inputClass = 'w-full p-2.5 rounded-xl bg-[#1a2330] border border-[#283748] text-white text-sm focus:outline-none focus:border-[#15E558]';
+  const inputClass = 'w-full p-2.5 rounded-xl bg-[#1a2330] border border-[#283748] text-white text-sm focus:outline-none focus:border-[#00E054]';
 
   return (
     <OverlayScreen z={z} label="Settings">
@@ -155,7 +160,7 @@ export const SettingsModal: React.FC<SettingsProps> = ({ z, onSignOut, onDeleteA
             <div className="flex items-center gap-4">
               <button type="button" onClick={() => avatarInput.current?.click()} className="relative shrink-0" aria-label="Change profile photo">
                 <Avatar src={profile.avatar} name={profile.name} className="w-16 h-16 text-xl" />
-                <span className="absolute -bottom-0.5 -right-0.5 p-1.5 rounded-full bg-[#15E558] text-black border-2 border-[#14181c]"><Camera className="w-3 h-3" /></span>
+                <span className="absolute -bottom-0.5 -right-0.5 p-1.5 rounded-full bg-[#00E054] text-black border-2 border-[#14181c]"><Camera className="w-3 h-3" /></span>
               </button>
               <div className="text-xs space-y-1">
                 <button type="button" onClick={() => avatarInput.current?.click()} className="text-[#40BCF4] font-semibold block">Change photo</button>
@@ -186,7 +191,7 @@ export const SettingsModal: React.FC<SettingsProps> = ({ z, onSignOut, onDeleteA
               <span className="text-[10px] uppercase font-mono text-[#6c7f96]">Bio</span>
               <textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={3} maxLength={300} placeholder="What do you love to read?" className={`${inputClass} resize-none`} />
             </label>
-            <button type="submit" disabled={!dirty} className="w-full py-2.5 rounded-xl bg-[#15E558] text-black text-xs font-bold disabled:opacity-40">
+            <button type="submit" disabled={!dirty} className="w-full py-2.5 rounded-xl bg-[#00E054] text-black text-xs font-bold disabled:opacity-40">
               Save profile
             </button>
           </form>
@@ -203,7 +208,7 @@ export const SettingsModal: React.FC<SettingsProps> = ({ z, onSignOut, onDeleteA
                   type="button"
                   aria-pressed={on}
                   onClick={() => lib.actions.updateProfile({ favoriteGenres: on ? profile.favoriteGenres.filter((x) => x !== g.name) : [...profile.favoriteGenres, g.name] })}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${on ? 'bg-[#15E558] text-black border-[#15E558] font-bold' : 'bg-[#141b24] text-[#9fb0c3] border-[#2a3848]'}`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${on ? 'bg-[#00E054] text-black border-[#00E054] font-bold' : 'bg-[#141b24] text-[#9fb0c3] border-[#2a3848]'}`}
                 >
                   {g.name}
                 </button>
@@ -245,15 +250,7 @@ export const SettingsModal: React.FC<SettingsProps> = ({ z, onSignOut, onDeleteA
           </div>
         </Section>
 
-        <footer className="text-center pt-2 pb-4 space-y-1 text-[10px] text-[#556677]">
-          <p className="font-mono">Letterbook v{__APP_VERSION__}</p>
-          <p>
-            Book data and covers from{' '}
-            <a href="https://openlibrary.org" target="_blank" rel="noopener noreferrer" className="text-[#8fa0b5] underline inline-flex items-center gap-0.5">
-              Open Library <ExternalLink className="w-2.5 h-2.5" />
-            </a>
-          </p>
-        </footer>
+        <CreditsFooter className="!mx-0 pb-4" />
       </div>
     </OverlayScreen>
   );

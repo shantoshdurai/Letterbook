@@ -17,7 +17,7 @@ interface LogBookModalProps {
 }
 
 const FORMATS: { id: ReadingFormat; label: string; icon: typeof BookOpen; tint: string }[] = [
-  { id: 'physical', label: 'Print', icon: BookOpen, tint: '#15E558' },
+  { id: 'physical', label: 'Print', icon: BookOpen, tint: '#00E054' },
   { id: 'ebook', label: 'E-book', icon: Tablet, tint: '#40BCF4' },
   { id: 'audiobook', label: 'Audio', icon: Headphones, tint: '#FF8000' },
 ];
@@ -65,7 +65,7 @@ const BookPicker: React.FC<{ onPick: (b: Book) => void }> = ({ onPick }) => {
           onChange={(e) => setQ(e.target.value)}
           placeholder="Which book did you read?"
           aria-label="Search for a book to log"
-          className="w-full pl-10 pr-10 py-3 rounded-xl bg-[#1a2330] border border-[#273648] text-white placeholder-[#6c7f96] text-sm focus:outline-none focus:border-[#15E558]"
+          className="w-full pl-10 pr-10 py-3 rounded-xl bg-[#1a2330] border border-[#273648] text-white placeholder-[#6c7f96] text-sm focus:outline-none focus:border-[#00E054]"
         />
         {loading && <Loader2 className="w-4 h-4 text-[#8fa0b5] absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin" />}
       </div>
@@ -76,7 +76,7 @@ const BookPicker: React.FC<{ onPick: (b: Book) => void }> = ({ onPick }) => {
             key={b.id}
             type="button"
             onClick={() => onPick(b)}
-            className="w-full flex items-center gap-3 p-2 rounded-xl border border-transparent hover:border-[#15E558] hover:bg-[#1f2b3a] text-left transition-all"
+            className="w-full flex items-center gap-3 p-2 rounded-xl border border-transparent hover:border-[#00E054] hover:bg-[#1f2b3a] text-left transition-all"
           >
             <span className="w-10 aspect-[2/3] rounded overflow-hidden shrink-0 bg-[#1a2330]">
               <BookCover book={b} />
@@ -152,7 +152,7 @@ export const LogBookModal: React.FC<LogBookModalProps> = ({ z, bookId, logId }) 
       return;
     }
 
-    confetti({ particleCount: 70, spread: 70, origin: { y: 0.7 }, colors: ['#15E558', '#FF8000', '#40BCF4', '#ffffff'], disableForReducedMotion: true });
+    confetti({ particleCount: 70, spread: 70, origin: { y: 0.7 }, colors: ['#00E054', '#FF8000', '#40BCF4', '#ffffff'], disableForReducedMotion: true });
     if (lib.settings.showStoryAfterLog && (rating > 0 || entry.review)) {
       const storyReview: Review = {
         id: `rev-${entry.id}`,
@@ -246,7 +246,7 @@ export const LogBookModal: React.FC<LogBookModalProps> = ({ z, bookId, logId }) 
                 max={todayISO()}
                 onChange={(e) => setDate(e.target.value)}
                 required
-                className="w-full px-3 py-2.5 rounded-lg bg-[#1a2330] border border-[#273648] text-white text-xs font-mono focus:outline-none focus:border-[#15E558] [color-scheme:dark]"
+                className="w-full px-3 py-2.5 rounded-lg bg-[#1a2330] border border-[#273648] text-white text-xs font-mono focus:outline-none focus:border-[#00E054] [color-scheme:dark]"
               />
             </label>
             <div>
@@ -281,17 +281,17 @@ export const LogBookModal: React.FC<LogBookModalProps> = ({ z, bookId, logId }) 
               placeholder="Add a review… (optional)"
               rows={4}
               maxLength={5000}
-              className="w-full px-3.5 py-3 rounded-lg bg-[#1a2330] border border-[#273648] text-white placeholder-[#6c7f96] text-sm focus:outline-none focus:border-[#15E558] resize-y"
+              className="w-full px-3.5 py-3 rounded-lg bg-[#1a2330] border border-[#273648] text-white placeholder-[#6c7f96] text-sm focus:outline-none focus:border-[#00E054] resize-y"
             />
           </label>
 
           <div className="flex flex-wrap items-center gap-4 text-xs">
             <label className="flex items-center gap-2 cursor-pointer text-[#a5b6c9]">
-              <input type="checkbox" checked={spoilers} onChange={(e) => setSpoilers(e.target.checked)} className="accent-[#15E558] w-4 h-4" />
+              <input type="checkbox" checked={spoilers} onChange={(e) => setSpoilers(e.target.checked)} className="accent-[#00E054] w-4 h-4" />
               <AlertTriangle className="w-3.5 h-3.5 text-[#FF8000]" /> Contains spoilers
             </label>
             <label className="flex items-center gap-2 cursor-pointer text-[#a5b6c9]">
-              <input type="checkbox" checked={reRead} onChange={(e) => setReRead(e.target.checked)} className="accent-[#15E558] w-4 h-4" />
+              <input type="checkbox" checked={reRead} onChange={(e) => setReRead(e.target.checked)} className="accent-[#00E054] w-4 h-4" />
               <RefreshCw className="w-3.5 h-3.5 text-[#40BCF4]" /> I've read this before
             </label>
           </div>
@@ -323,7 +323,7 @@ export const LogBookModal: React.FC<LogBookModalProps> = ({ z, bookId, logId }) 
                   }
                 }}
                 aria-label="Add a tag"
-                className="flex-1 px-3 py-2 rounded-lg bg-[#1a2330] border border-[#273648] text-white text-xs placeholder-[#6c7f96] focus:outline-none focus:border-[#15E558]"
+                className="flex-1 px-3 py-2 rounded-lg bg-[#1a2330] border border-[#273648] text-white text-xs placeholder-[#6c7f96] focus:outline-none focus:border-[#00E054]"
               />
               <button type="button" onClick={addTag} disabled={!tagInput.trim()} className="px-3 py-2 rounded-lg bg-[#243344] text-xs font-semibold text-white disabled:opacity-40">
                 Add
@@ -339,7 +339,7 @@ export const LogBookModal: React.FC<LogBookModalProps> = ({ z, bookId, logId }) 
             )}
             <button
               type="submit"
-              className="flex-1 py-3 rounded-xl bg-[#15E558] hover:bg-[#1cf363] text-black text-sm font-bold transition-all shadow-[0_2px_12px_rgba(21,229,88,0.3)] flex items-center justify-center gap-1.5 active:scale-[0.98]"
+              className="flex-1 py-3 rounded-xl bg-[#00E054] hover:bg-[#1cf363] text-black text-sm font-bold transition-all shadow-[0_2px_12px_rgba(0,224,84,0.3)] flex items-center justify-center gap-1.5 active:scale-[0.98]"
             >
               <Check className="w-4 h-4 stroke-[3]" />
               {existing ? 'Save changes' : 'Save to diary'}

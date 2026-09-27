@@ -152,7 +152,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
               <button
                 type="button"
                 onClick={() => ui.open({ type: 'grid', title: book.author, subtitle: 'Books by this author', source: 'author', authorOf: book })}
-                className="font-semibold text-[#15E558] hover:underline"
+                className="font-semibold text-[#00E054] hover:underline"
               >
                 {book.author}
               </button>
@@ -174,7 +174,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
 
         {/* Actions */}
         <div className="grid grid-cols-4 gap-2 p-2 rounded-xl bg-[#18222e] border border-[#263445]">
-          <button type="button" onClick={act.read} aria-pressed={isRead} className={`flex flex-col items-center py-2.5 rounded-lg transition-all ${isRead ? 'bg-[#15E558]/15 text-[#15E558]' : 'text-[#8fa0b5] hover:bg-[#222f3e]'}`}>
+          <button type="button" onClick={act.read} aria-pressed={isRead} className={`flex flex-col items-center py-2.5 rounded-lg transition-all ${isRead ? 'bg-[#00E054]/15 text-[#00E054]' : 'text-[#8fa0b5] hover:bg-[#222f3e]'}`}>
             <Eye className="w-5 h-5 mb-1" />
             <span className="text-[10px] font-semibold">{isRead ? 'Read' : 'Read?'}</span>
           </button>
@@ -186,7 +186,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
             <BookMarked className={`w-5 h-5 mb-1 ${isWatchlisted ? 'fill-[#40BCF4]/40' : ''}`} />
             <span className="text-[10px] font-semibold">Watchlist</span>
           </button>
-          <button type="button" onClick={act.log} className="flex flex-col items-center py-2.5 rounded-lg bg-[#15E558] text-black active:scale-95 transition-transform">
+          <button type="button" onClick={act.log} className="flex flex-col items-center py-2.5 rounded-lg bg-[#00E054] text-black active:scale-95 transition-transform">
             <Plus className="w-5 h-5 mb-1 stroke-[3]" />
             <span className="text-[10px] font-bold">{myLogs.length ? 'Log again' : 'Log / Rate'}</span>
           </button>
@@ -197,7 +197,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
           <section className="p-3.5 rounded-xl bg-[#161f2b] border border-[#253344] space-y-2.5" aria-label="Your diary entries">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold text-[#8fa0b5] uppercase tracking-wider">Your diary</h2>
-              {myRating > 0 && <span className="text-sm text-[#15E558] font-bold">{starText(myRating)}</span>}
+              {myRating > 0 && <span className="text-sm text-[#00E054] font-bold">{starText(myRating)}</span>}
             </div>
             {myLogs.map((l) => (
               <button
@@ -211,7 +211,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
                   {l.review ? <span className="text-[#6c7f96]"> · reviewed</span> : null}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  {l.rating > 0 && <span className="text-[#15E558] font-bold">{starText(l.rating)}</span>}
+                  {l.rating > 0 && <span className="text-[#00E054] font-bold">{starText(l.rating)}</span>}
                   {l.liked && <Heart className="w-3 h-3 fill-[#FF8000] text-[#FF8000]" />}
                   <Pencil className="w-3 h-3 text-[#6c7f96]" />
                 </span>
@@ -241,7 +241,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
                 key={g}
                 type="button"
                 onClick={() => ui.open({ type: 'genre', name: g })}
-                className="px-2.5 py-1 rounded-full text-xs font-medium bg-[#1c2633] text-[#a9b8c9] border border-[#273648] hover:border-[#15E558] hover:text-white"
+                className="px-2.5 py-1 rounded-full text-xs font-medium bg-[#1c2633] text-[#a9b8c9] border border-[#273648] hover:border-[#00E054] hover:text-white"
               >
                 {g}
               </button>
@@ -271,7 +271,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
           <section className="space-y-2" aria-label="Ratings distribution">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold text-[#8fa0b5] uppercase tracking-wider">Ratings</h2>
-              <span className="text-xs font-mono text-[#15E558]">{book.averageRating.toFixed(1)} avg</span>
+              <span className="text-xs font-mono text-[#00E054]">{book.averageRating.toFixed(1)} avg</span>
             </div>
             <div className="h-16 flex items-end gap-1" role="img" aria-label={`Rating distribution for ${book.title}`}>
               {dist.map((count, i) => (
@@ -281,8 +281,8 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
               ))}
             </div>
             <div className="flex justify-between text-[10px] text-[#6c7f96]">
-              <span className="text-[#15E558]">★</span>
-              <span className="text-[#15E558]">★★★★★</span>
+              <span className="text-[#00E054]">★</span>
+              <span className="text-[#00E054]">★★★★★</span>
             </div>
           </section>
         )}
@@ -321,7 +321,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
               className={`pb-2 text-xs font-bold uppercase tracking-wide relative ${tab === id ? 'text-white' : 'text-[#6c7f96] hover:text-white'}`}
             >
               {label}
-              {tab === id && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#15E558]" />}
+              {tab === id && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#00E054]" />}
             </button>
           ))}
         </div>
@@ -331,7 +331,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
             {reviews.length > 1 && (
               <div className="flex justify-end gap-1 text-xs">
                 {(['popular', 'recent'] as const).map((s) => (
-                  <button key={s} type="button" onClick={() => setSort(s)} aria-pressed={sort === s} className={`px-2 py-1 rounded capitalize ${sort === s ? 'bg-[#222e3d] text-[#15E558]' : 'text-[#6c7f96]'}`}>
+                  <button key={s} type="button" onClick={() => setSort(s)} aria-pressed={sort === s} className={`px-2 py-1 rounded capitalize ${sort === s ? 'bg-[#222e3d] text-[#00E054]' : 'text-[#6c7f96]'}`}>
                     {s}
                   </button>
                 ))}
@@ -340,7 +340,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
             {reviews.length === 0 ? (
               <div className="p-6 text-center bg-[#18222e] rounded-xl border border-[#232f3e] space-y-3">
                 <p className="text-xs text-[#8fa0b5]">No reviews yet. Be the first to review {book.title}.</p>
-                <button type="button" onClick={act.log} className="px-4 py-2 rounded-lg bg-[#15E558] text-black text-xs font-bold">Write a review</button>
+                <button type="button" onClick={act.log} className="px-4 py-2 rounded-lg bg-[#00E054] text-black text-xs font-bold">Write a review</button>
               </div>
             ) : (
               reviews.map((rev) => {
@@ -356,7 +356,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
                           <span className="text-[#6c7f96]">{rev.userHandle}</span>
                         </p>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          {rev.rating > 0 && <span className="text-[11px] text-[#15E558] font-bold">{starText(rev.rating)}</span>}
+                          {rev.rating > 0 && <span className="text-[11px] text-[#00E054] font-bold">{starText(rev.rating)}</span>}
                           {rev.liked && <Heart className="w-3 h-3 fill-[#FF8000] text-[#FF8000]" />}
                           <span className="text-[10px] text-[#6c7f96]">{relativeTime(rev.date)}</span>
                         </div>
@@ -412,7 +412,7 @@ export const BookDetailModal: React.FC<BookDetailProps> = ({ z, book: initial })
             {book.quotes?.length ? (
               book.quotes.map((q, idx) => (
                 <blockquote key={idx} className="p-4 rounded-xl bg-[#17202b] border border-[#253344] flex items-start gap-3">
-                  <Quote className="w-4 h-4 text-[#15E558] shrink-0 mt-0.5" />
+                  <Quote className="w-4 h-4 text-[#00E054] shrink-0 mt-0.5" />
                   <p className="text-sm italic font-serif text-[#cbd6e2] leading-relaxed">{q}</p>
                 </blockquote>
               ))

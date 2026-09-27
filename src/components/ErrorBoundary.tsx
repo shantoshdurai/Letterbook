@@ -26,7 +26,7 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
         <p className="text-sm text-[#8fa0b5] max-w-xs">
           Letterbook hit an unexpected error. Your diary is saved on this device, so reloading is safe.
         </p>
-        <button type="button" onClick={() => window.location.reload()} className="px-5 py-2.5 rounded-xl bg-[#15E558] text-black text-sm font-bold">
+        <button type="button" onClick={() => window.location.reload()} className="px-5 py-2.5 rounded-xl bg-[#00E054] text-black text-sm font-bold">
           Reload Letterbook
         </button>
         <details className="text-[10px] text-[#556677] max-w-xs">

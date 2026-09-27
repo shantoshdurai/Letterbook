@@ -1,6 +1,7 @@
 // On-device accounts. Letterbook has no server yet, so accounts, passwords and
 // reading data all live in this browser/app install. Passwords are never stored
 // in plain text: we keep a random salt and a PBKDF2-SHA256 hash.
+import { pbkdf2Sha256 } from './pbkdf2';
 import { readJSON, writeJSON, storageKey, keysWithPrefix, removeKey } from './storage';
 
 export interface Account {
@@ -36,12 +37,18 @@ function randomId(bytes = 12) {
   return toHex(a.buffer);
 }
 
+const ITERATIONS = 120_000;
+
 async function hashPassword(password: string, salt: string) {
-  if (!crypto?.subtle) throw new Error('Secure storage is unavailable in this browser.');
   const enc = new TextEncoder();
+  if (!globalThis.crypto?.subtle) {
+    // Non-secure origin (plain http on a LAN IP): same algorithm in pure JS.
+    const bytes = pbkdf2Sha256(enc.encode(password), enc.encode(salt), ITERATIONS);
+    return toHex(bytes.buffer as ArrayBuffer);
+  }
   const key = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
   const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(salt), iterations: 120_000 },
+    { name: 'PBKDF2', hash: 'SHA-256', salt: enc.encode(salt), iterations: ITERATIONS },
     key,
     256,
   );

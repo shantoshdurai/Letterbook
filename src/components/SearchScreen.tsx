@@ -10,7 +10,7 @@ import { seedBooks } from '../data/seed';
 import { FilterModal } from './FilterModal';
 import { BookPoster, EmptyState, PosterSkeleton, SectionHeader } from './ui';
 
-const GENRE_TINTS = ['#15E558', '#40BCF4', '#FF8000', '#c084fc', '#f472b6', '#facc15'];
+const GENRE_TINTS = ['#00E054', '#40BCF4', '#FF8000', '#c084fc', '#f472b6', '#facc15'];
 
 export const SearchScreen: React.FC<{ active: boolean }> = ({ active }) => {
   const lib = useLibrary();
@@ -76,8 +76,8 @@ export const SearchScreen: React.FC<{ active: boolean }> = ({ active }) => {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#14181c] text-white screen-bottom-pad" hidden={!active}>
-      <header className="sticky top-0 z-30 bg-[#14181c]/95 backdrop-blur-md border-b border-[#202934] pt-safe">
+    <div className="min-h-[calc(100dvh-var(--app-top))] bg-[#14181c] text-white screen-bottom-pad" hidden={!active}>
+      <header className="sticky-top z-30 bg-[#14181c]/95 backdrop-blur-md border-b border-[#202934] pt-safe">
         <div className="px-4 pt-3 pb-1 flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Search</h1>
           <button
@@ -88,7 +88,7 @@ export const SearchScreen: React.FC<{ active: boolean }> = ({ active }) => {
           >
             <SlidersHorizontal className="w-5 h-5" />
             {filterCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#15E558] text-black text-[9px] font-bold flex items-center justify-center">{filterCount}</span>
+              <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-[#00E054] text-black text-[9px] font-bold flex items-center justify-center">{filterCount}</span>
             )}
           </button>
         </div>
@@ -102,7 +102,7 @@ export const SearchScreen: React.FC<{ active: boolean }> = ({ active }) => {
               placeholder="Search books, authors, genres…"
               aria-label="Search books"
               enterKeyHint="search"
-              className="w-full pl-10 pr-10 py-2.5 rounded-full bg-[#242e3a] border border-[#313e4e] text-sm text-white placeholder-[#748393] focus:outline-none focus:border-[#15E558] [&::-webkit-search-cancel-button]:hidden"
+              className="w-full pl-10 pr-10 py-2.5 rounded-full bg-[#242e3a] border border-[#313e4e] text-sm text-white placeholder-[#748393] focus:outline-none focus:border-[#00E054] [&::-webkit-search-cancel-button]:hidden"
             />
             {loading ? (
               <Loader2 className="w-4 h-4 text-[#8fa0b5] absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin" />
@@ -134,7 +134,7 @@ export const SearchScreen: React.FC<{ active: boolean }> = ({ active }) => {
               </button>
             </div>
           )}
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
             {results.map((book) => (
               <BookPoster
                 key={book.id}
@@ -184,7 +184,7 @@ export const SearchScreen: React.FC<{ active: boolean }> = ({ active }) => {
                     key={genre.name}
                     type="button"
                     onClick={() => ui.open({ type: 'genre', name: genre.name })}
-                    className="relative h-28 p-3 rounded-xl bg-[#1a222c] border border-[#273545] hover:border-[#15E558]/70 transition-all overflow-hidden text-left group"
+                    className="relative h-28 p-3 rounded-xl bg-[#1a222c] border border-[#273545] hover:border-[#00E054]/70 transition-all overflow-hidden text-left group"
                   >
                     <div className="absolute inset-0 opacity-25" style={{ background: `radial-gradient(circle at 85% 20%, ${tint}, transparent 60%)` }} />
                     <div className="absolute right-2 bottom-2 flex">

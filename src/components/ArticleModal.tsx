@@ -56,7 +56,7 @@ export const ArticleModal: React.FC<{ z: number; articleId: string }> = ({ z, ar
       </div>
 
       <article className="px-5 -mt-12 relative space-y-5 pb-10">
-        <span className="inline-block px-2 py-0.5 rounded bg-[#15E558] text-black font-mono text-[10px] font-bold uppercase tracking-wider">Letterbook Journal</span>
+        <span className="inline-block px-2 py-0.5 rounded bg-[#00E054] text-black font-mono text-[10px] font-bold uppercase tracking-wider">Letterbook Journal</span>
         <header>
           <h1 className="text-2xl font-extrabold text-white tracking-tight leading-tight">{article.title}</h1>
           <p className="text-sm text-[#9eb0c3] font-serif italic mt-2">{article.subtitle}</p>

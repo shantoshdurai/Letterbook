@@ -18,7 +18,7 @@ export const MyReviewsScreen: React.FC<{ z: number }> = ({ z }) => {
           icon={<MessageSquareText className="w-10 h-10" />}
           title="No reviews yet"
           body="When you log a book, add a few words about it. Your reviews collect here."
-          action={<button type="button" onClick={() => ui.open({ type: 'log' })} className="px-4 py-2 rounded-lg bg-[#15E558] text-black text-xs font-bold">Log a book</button>}
+          action={<button type="button" onClick={() => ui.open({ type: 'log' })} className="px-4 py-2 rounded-lg bg-[#00E054] text-black text-xs font-bold">Log a book</button>}
         />
       ) : (
         <div className="p-4 space-y-3 pb-safe">
@@ -35,7 +35,7 @@ export const MyReviewsScreen: React.FC<{ z: number }> = ({ z }) => {
                     <div className="min-w-0">
                       <h2 className="text-sm font-bold text-white truncate">{book.title}</h2>
                       <p className="text-[11px] text-[#6c7f96] flex items-center gap-1.5">
-                        {r.rating > 0 && <span className="text-[#15E558] font-bold">{starText(r.rating)}</span>}
+                        {r.rating > 0 && <span className="text-[#00E054] font-bold">{starText(r.rating)}</span>}
                         {r.liked && <Heart className="w-3 h-3 fill-[#FF8000] text-[#FF8000]" />}
                         {r.readDate && <span>{shortDate(r.readDate)}</span>}
                       </p>

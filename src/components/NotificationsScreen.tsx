@@ -7,8 +7,8 @@ import { relativeTime } from '../lib/format';
 import { BookCover, EmptyState, OverlayScreen, ScreenHeader } from './ui';
 
 const ICONS: Record<NotificationItem['kind'], React.ReactNode> = {
-  system: <Sparkles className="w-4 h-4 text-[#15E558]" />,
-  goal: <Target className="w-4 h-4 text-[#15E558]" />,
+  system: <Sparkles className="w-4 h-4 text-[#00E054]" />,
+  goal: <Target className="w-4 h-4 text-[#00E054]" />,
   milestone: <Trophy className="w-4 h-4 text-[#FF8000]" />,
   list: <ListIcon className="w-4 h-4 text-[#40BCF4]" />,
   community: <Bell className="w-4 h-4 text-[#40BCF4]" />,
@@ -59,7 +59,7 @@ export const NotificationsScreen: React.FC<{ z: number }> = ({ z }) => {
                     lib.actions.markNotificationRead(n.id);
                     if (book) ui.open({ type: 'book', book });
                   }}
-                  className={`w-full px-4 py-3.5 flex items-start gap-3 text-left hover:bg-[#192027] ${n.isRead ? '' : 'bg-[#15E558]/[0.04]'}`}
+                  className={`w-full px-4 py-3.5 flex items-start gap-3 text-left hover:bg-[#192027] ${n.isRead ? '' : 'bg-[#00E054]/[0.04]'}`}
                 >
                   <span className="mt-0.5 p-2 rounded-full bg-[#1c2531] shrink-0">{ICONS[n.kind]}</span>
                   <span className="flex-1 min-w-0">

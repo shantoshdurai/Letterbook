@@ -20,13 +20,22 @@
 }
 
 @layer base {
+  :root {
+    /* Height of the sticky desktop top bar; tab screens pin their headers below it. */
+    --app-top: 0px;
+  }
+  @media (min-width: 768px) {
+    :root {
+      --app-top: 3.5rem;
+    }
+  }
   html {
-    background-color: #0d1013;
+    background-color: #14181c;
     -webkit-text-size-adjust: 100%;
   }
   body {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: #0d1013;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: #14181c;
     color: #e5ebf2;
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
@@ -34,7 +43,7 @@
     min-height: 100dvh;
   }
   ::selection {
-    background: #15E558;
+    background: #00E054;
     color: #000;
   }
   button, [role='button'] {
@@ -62,8 +71,11 @@
   font-family: 'Playfair Display', Georgia, Cambria, 'Times New Roman', Times, serif;
 }
 
+/* Counters and dates: same face as the UI, with even-width digits. */
 .font-mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
 
 /* Safe areas for notched phones / installed PWA / WebView shells */
@@ -77,7 +89,20 @@
   bottom: calc(4.5rem + env(safe-area-inset-bottom));
 }
 .screen-bottom-pad {
-  padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+}
+.sticky-top {
+  position: sticky;
+  top: var(--app-top);
+}
+@media (min-width: 768px) {
+  /* Desktop has a top bar instead of the bottom tab bar. */
+  .bottom-nav-offset {
+    bottom: 2rem;
+  }
+  .screen-bottom-pad {
+    padding-bottom: 3rem;
+  }
 }
 
 /* Custom scrollbars */
@@ -97,6 +122,34 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #3d5066;
+}
+
+/* Poster frame: a hairline inner border over the cover, as on Letterboxd. */
+.poster-frame {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #202830;
+}
+.poster-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(221, 238, 255, 0.18);
+  pointer-events: none;
+  transition: box-shadow 150ms ease;
+}
+@media (hover: hover) {
+  .poster-frame:hover::after {
+    box-shadow: inset 0 0 0 2px #00e054;
+  }
+}
+/* Controls that only make sense with a mouse (hover-revealed actions). */
+@media (hover: none) {
+  .hover-only {
+    display: none !important;
+  }
 }
 
 /* Subtle book spine effect */

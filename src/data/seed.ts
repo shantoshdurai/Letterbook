@@ -356,10 +356,10 @@ export const communityActivity: FriendActivity[] = [
   {
     id: 'act-1',
     user: {
-      id: 'user-behaind',
-      name: 'BeHaind',
-      handle: '@behaind',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+      id: 'user-priya',
+      name: 'Priya Nair',
+      handle: '@priyareads',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80'
     },
     type: 'added_watchlist',
     bookId: 'dune',

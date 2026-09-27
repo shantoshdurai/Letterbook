@@ -39,10 +39,10 @@ const FavoritesPicker: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     else if (picked.length < 4) setPicked([...picked, b.id]);
                     else ui.toast('You can pick up to 4 favourites', { tone: 'error' });
                   }}
-                  className={`relative aspect-[2/3] rounded-md overflow-hidden border-2 transition-all ${on ? 'border-[#15E558]' : 'border-transparent opacity-80'}`}
+                  className={`relative aspect-[2/3] rounded-md overflow-hidden border-2 transition-all ${on ? 'border-[#00E054]' : 'border-transparent opacity-80'}`}
                 >
                   <BookCover book={b} />
-                  {on && <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-[#15E558] text-black text-[10px] font-bold flex items-center justify-center">{idx + 1}</span>}
+                  {on && <span className="absolute top-1 right-1 w-5 h-5 rounded-full bg-[#00E054] text-black text-[10px] font-bold flex items-center justify-center">{idx + 1}</span>}
                 </button>
               );
             })}
@@ -57,7 +57,7 @@ const FavoritesPicker: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             ui.toast('Favourites updated');
             onClose();
           }}
-          className="w-full py-3 rounded-xl bg-[#15E558] text-black text-sm font-bold"
+          className="w-full py-3 rounded-xl bg-[#00E054] text-black text-sm font-bold"
         >
           Save favourites
         </button>
@@ -107,8 +107,8 @@ export const ProfileScreen: React.FC<{ active: boolean; onOpenDiary: () => void;
   );
 
   return (
-    <div className="min-h-[100dvh] bg-[#14181c] text-white screen-bottom-pad" hidden={!active}>
-      <header className="sticky top-0 z-30 bg-[#14181c]/95 backdrop-blur-md border-b border-[#202934] pt-safe">
+    <div className="min-h-[calc(100dvh-var(--app-top))] bg-[#14181c] text-white screen-bottom-pad" hidden={!active}>
+      <header className="sticky-top z-30 bg-[#14181c]/95 backdrop-blur-md border-b border-[#202934] pt-safe">
         <div className="px-4 py-3 flex items-center justify-between">
           <h1 className="text-base font-bold tracking-tight">{profile.handle}</h1>
           <button type="button" onClick={() => ui.open({ type: 'settings' })} aria-label="Settings" className="p-2 rounded-full text-[#8fa0b5] hover:text-white hover:bg-[#202934]">
@@ -119,7 +119,7 @@ export const ProfileScreen: React.FC<{ active: boolean; onOpenDiary: () => void;
 
       <div className="px-4 py-5 space-y-6">
         <div className="flex items-start gap-4">
-          <button type="button" onClick={() => ui.open({ type: 'settings' })} aria-label="Edit profile" className="relative shrink-0 rounded-full border-2 border-[#15E558] p-0.5">
+          <button type="button" onClick={() => ui.open({ type: 'settings' })} aria-label="Edit profile" className="relative shrink-0 rounded-full border-2 border-[#00E054] p-0.5">
             <Avatar src={profile.avatar} name={profile.name} className="w-18 h-18 text-2xl" />
             {!profile.avatar && (
               <span className="absolute -bottom-0.5 -right-0.5 p-1 rounded-full bg-[#243140] border border-[#14181c] text-white"><Camera className="w-3 h-3" /></span>
@@ -167,7 +167,7 @@ export const ProfileScreen: React.FC<{ active: boolean; onOpenDiary: () => void;
                   <BookCover book={b} />
                 </button>
               ) : (
-                <button key={i} type="button" onClick={() => setPickingFavs(true)} aria-label="Add a favourite" className="aspect-[2/3] rounded-md border border-dashed border-[#2f4054] flex items-center justify-center text-[#455669] hover:text-[#15E558] hover:border-[#15E558]">
+                <button key={i} type="button" onClick={() => setPickingFavs(true)} aria-label="Add a favourite" className="aspect-[2/3] rounded-md border border-dashed border-[#2f4054] flex items-center justify-center text-[#455669] hover:text-[#00E054] hover:border-[#00E054]">
                   <Plus className="w-5 h-5" />
                 </button>
               );
@@ -178,7 +178,7 @@ export const ProfileScreen: React.FC<{ active: boolean; onOpenDiary: () => void;
         <section className="p-4 rounded-xl bg-[#1a222c] border border-[#273545] space-y-2.5" aria-label="Reading goal">
           <div className="flex items-center justify-between gap-2">
             <span className="flex items-center gap-2 text-xs font-bold">
-              <Target className="w-4 h-4 text-[#15E558]" /> {profile.readingGoal.year} reading goal
+              <Target className="w-4 h-4 text-[#00E054]" /> {profile.readingGoal.year} reading goal
             </span>
             {editingGoal ? (
               <span className="flex items-center gap-1">
@@ -194,16 +194,16 @@ export const ProfileScreen: React.FC<{ active: boolean; onOpenDiary: () => void;
                   className="w-16 px-2 py-1 rounded-md bg-[#12161a] border border-[#2f4054] text-xs text-white font-mono"
                   autoFocus
                 />
-                <button type="button" onClick={saveGoal} aria-label="Save goal" className="p-1 rounded-md bg-[#15E558] text-black"><Check className="w-3.5 h-3.5" /></button>
+                <button type="button" onClick={saveGoal} aria-label="Save goal" className="p-1 rounded-md bg-[#00E054] text-black"><Check className="w-3.5 h-3.5" /></button>
               </span>
             ) : (
-              <button type="button" onClick={() => { setGoalInput(String(target)); setEditingGoal(true); }} className="text-xs font-mono font-bold text-[#15E558] flex items-center gap-1">
+              <button type="button" onClick={() => { setGoalInput(String(target)); setEditingGoal(true); }} className="text-xs font-mono font-bold text-[#00E054] flex items-center gap-1">
                 {lib.thisYearCount} / {target} <Pencil className="w-3 h-3 text-[#6c7f96]" />
               </button>
             )}
           </div>
           <div className="w-full h-2 rounded-full bg-[#12161a] overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-            <div className="h-full rounded-full bg-gradient-to-r from-[#15E558] to-[#40BCF4] transition-all duration-500" style={{ width: `${pct}%` }} />
+            <div className="h-full rounded-full bg-gradient-to-r from-[#00E054] to-[#40BCF4] transition-all duration-500" style={{ width: `${pct}%` }} />
           </div>
           <p className="text-[11px] text-[#6c7f96]">
             {pct >= 100 ? 'Goal reached. Nicely done!' : `${Math.max(0, target - lib.thisYearCount)} to go · ${pct}% there`}
@@ -223,7 +223,7 @@ export const ProfileScreen: React.FC<{ active: boolean; onOpenDiary: () => void;
                 return (
                   <button key={l.id} type="button" onClick={() => ui.open({ type: 'book', book: b })} className="text-left">
                     <span className="block aspect-[2/3] rounded-md overflow-hidden border border-[#253342] bg-[#1a2330]"><BookCover book={b} /></span>
-                    <span className="block text-[10px] text-[#15E558] font-bold mt-1 h-3">{l.rating ? '★'.repeat(Math.floor(l.rating)) + (l.rating % 1 ? '½' : '') : ''}</span>
+                    <span className="block text-[10px] text-[#00E054] font-bold mt-1 h-3">{l.rating ? '★'.repeat(Math.floor(l.rating)) + (l.rating % 1 ? '½' : '') : ''}</span>
                   </button>
                 );
               })}
@@ -244,13 +244,13 @@ export const ProfileScreen: React.FC<{ active: boolean; onOpenDiary: () => void;
                 </div>
               ))}
             </div>
-            <div className="flex justify-between text-[10px] text-[#15E558]"><span>★</span><span>★★★★★</span></div>
+            <div className="flex justify-between text-[10px] text-[#00E054]"><span>★</span><span>★★★★★</span></div>
           </section>
         )}
 
         <nav className="rounded-xl bg-[#171e26] border border-[#232f3d] divide-y divide-[#202934] overflow-hidden" aria-label="Your library">
-          <Row icon={<BookOpen className="w-4 h-4 text-[#15E558]" />} label="Books" count={readIds.length} onClick={() => ui.open({ type: 'grid', title: 'Books you have read', bookIds: readIds, emptyText: 'Books you mark as read or log will appear here.' })} />
-          <Row icon={<NotebookPen className="w-4 h-4 text-[#15E558]" />} label="Diary" count={lib.logs.length} onClick={onOpenDiary} />
+          <Row icon={<BookOpen className="w-4 h-4 text-[#00E054]" />} label="Books" count={readIds.length} onClick={() => ui.open({ type: 'grid', title: 'Books you have read', bookIds: readIds, emptyText: 'Books you mark as read or log will appear here.' })} />
+          <Row icon={<NotebookPen className="w-4 h-4 text-[#00E054]" />} label="Diary" count={lib.logs.length} onClick={onOpenDiary} />
           <Row icon={<MessageSquareText className="w-4 h-4 text-[#40BCF4]" />} label="Reviews" count={lib.myReviews.length} onClick={() => ui.open({ type: 'reviews' })} />
           <Row icon={<ListIcon className="w-4 h-4 text-[#40BCF4]" />} label="Lists" count={lib.lists.length} onClick={onOpenLists} />
           <Row icon={<Bookmark className="w-4 h-4 text-[#40BCF4]" />} label="Watchlist" count={lib.watchlistIds.length} onClick={() => ui.open({ type: 'grid', title: 'Your Watchlist', bookIds: lib.watchlistIds, emptyText: 'Tap the bookmark on any book to save it for later.' })} />

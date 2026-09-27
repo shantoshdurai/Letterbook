@@ -5,7 +5,7 @@ import { useLibrary } from '../state/library';
 import { useUI } from '../state/ui';
 import { useLongPress } from '../hooks/useLongPress';
 import { monthKey, monthLabel, parseISODate, relativeTime, starText, todayISO } from '../lib/format';
-import { BookCover, EmptyState, Pill } from './ui';
+import { BookCover, EmptyState, TabBar } from './ui';
 
 const DiaryRow: React.FC<{ log: ReadingLogEntry; book: Book }> = ({ log, book }) => {
   const ui = useUI();
@@ -28,7 +28,7 @@ const DiaryRow: React.FC<{ log: ReadingLogEntry; book: Book }> = ({ log, book })
           {book.title} {book.year ? <span className="text-[#6c7f96] font-normal">{book.year}</span> : null}
         </h3>
         <div className="flex items-center gap-1.5 mt-1 text-[#6c7f96]">
-          {log.rating > 0 && <span className="text-[11px] text-[#15E558] font-bold">{starText(log.rating)}</span>}
+          {log.rating > 0 && <span className="text-[11px] text-[#00E054] font-bold">{starText(log.rating)}</span>}
           {log.liked && <Heart className="w-3 h-3 text-[#FF8000] fill-[#FF8000]" />}
           {log.isReRead && <RefreshCw className="w-3 h-3" aria-label="Re-read" />}
           {log.review && <MessageSquareText className="w-3 h-3" aria-label="Reviewed" />}
@@ -87,12 +87,12 @@ const DiaryCalendar: React.FC<{ logs: { log: ReadingLogEntry; book: Book }[] }> 
                 type="button"
                 onClick={() => ui.open({ type: 'log', logId: log.id })}
                 aria-label={`${monthLabel(key)} ${day}: ${entries.map((e) => e.book.title).join(', ')}`}
-                className="relative aspect-[2/3] rounded overflow-hidden bg-[#1a2330] border border-[#2d3b4c] hover:border-[#15E558]"
+                className="relative aspect-[2/3] rounded overflow-hidden bg-[#1a2330] border border-[#2d3b4c] hover:border-[#00E054]"
               >
                 <BookCover book={book} />
                 <span className="absolute top-0.5 left-0.5 px-1 rounded bg-black/80 font-mono text-[9px] font-bold text-white">{day}</span>
                 {entries.length > 1 && (
-                  <span className="absolute bottom-0.5 right-0.5 px-1 rounded bg-[#15E558] text-black font-mono text-[9px] font-bold">+{entries.length - 1}</span>
+                  <span className="absolute bottom-0.5 right-0.5 px-1 rounded bg-[#00E054] text-black font-mono text-[9px] font-bold">+{entries.length - 1}</span>
                 )}
               </button>
             );
@@ -112,7 +112,7 @@ export const ListCard: React.FC<{ list: BookList; onOpen: () => void; liked?: bo
   const lib = useLibrary();
   const covers = lib.resolve(list.bookIds.slice(0, 3));
   return (
-    <button type="button" onClick={onOpen} className="p-3 rounded-xl bg-[#1a222c] border border-[#273545] hover:border-[#15E558]/70 transition-all text-left flex flex-col">
+    <button type="button" onClick={onOpen} className="p-3 rounded-xl bg-[#1a222c] border border-[#273545] hover:border-[#00E054]/70 transition-all text-left flex flex-col">
       <div className="relative h-24 flex items-end justify-center">
         {covers.length ? (
           covers.map((b, i) => (
@@ -169,30 +169,34 @@ export const ListsScreen: React.FC<{ active: boolean; initialTab?: 'lists' | 'di
   const community = lib.allLists.filter((l) => l.creatorId !== lib.profile.id);
 
   return (
-    <div className="min-h-[100dvh] bg-[#14181c] text-white screen-bottom-pad" hidden={!active}>
-      <header className="sticky top-0 z-30 bg-[#14181c]/95 backdrop-blur-md pt-safe">
+    <div className="min-h-[calc(100dvh-var(--app-top))] bg-[#14181c] text-white screen-bottom-pad" hidden={!active}>
+      <header className="sticky-top z-30 bg-[#14181c]/95 backdrop-blur-md pt-safe">
         <div className="px-4 pt-3 pb-1 flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Lists</h1>
           <button type="button" onClick={() => ui.open({ type: 'createList' })} aria-label="Create a new list" className="p-2 rounded-full text-white hover:bg-[#202934]">
             <Plus className="w-6 h-6" />
           </button>
         </div>
-        <div className="px-4 py-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <Pill active={tab === 'lists'} onClick={() => setTab('lists')}>Your Lists</Pill>
-          <Pill active={tab === 'diary'} onClick={() => setTab('diary')}>Diary</Pill>
-          <Pill active={tab === 'discover'} onClick={() => setTab('discover')}>Discover</Pill>
-        </div>
+        <TabBar
+          value={tab}
+          onChange={setTab}
+          tabs={[
+            { id: 'lists', label: 'Your lists' },
+            { id: 'diary', label: 'Diary' },
+            { id: 'discover', label: 'Discover' },
+          ]}
+        />
       </header>
 
       {tab === 'lists' && (
-        <div className="space-y-6 pt-2 px-4">
+        <div className="space-y-6 pt-5 px-4">
           <section className="space-y-2.5" aria-label="Watchlist">
             <button
               type="button"
               onClick={() => ui.open({ type: 'grid', title: 'Your Watchlist', bookIds: lib.watchlistIds, emptyText: 'Tap the bookmark on any book to save it for later.' })}
               className="w-full flex items-center justify-between group"
             >
-              <span className="text-sm font-bold text-white group-hover:text-[#15E558] flex items-center gap-1">Your Watchlist <ChevronRight className="w-4 h-4 text-[#6c7f96]" /></span>
+              <span className="text-sm font-bold text-white group-hover:text-[#00E054] flex items-center gap-1">Your Watchlist <ChevronRight className="w-4 h-4 text-[#6c7f96]" /></span>
               <span className="text-[10px] font-mono text-[#6c7f96] uppercase tracking-wider">{watchlist.length} books</span>
             </button>
             <button
@@ -225,7 +229,7 @@ export const ListsScreen: React.FC<{ active: boolean; initialTab?: 'lists' | 'di
                   title="Make your first list"
                   body="Favourite fantasy, books for the beach, your all-time top 10…"
                   action={
-                    <button type="button" onClick={() => ui.open({ type: 'createList' })} className="px-4 py-2 rounded-lg bg-[#15E558] text-black text-xs font-bold">
+                    <button type="button" onClick={() => ui.open({ type: 'createList' })} className="px-4 py-2 rounded-lg bg-[#00E054] text-black text-xs font-bold">
                       New list
                     </button>
                   }
@@ -243,7 +247,7 @@ export const ListsScreen: React.FC<{ active: boolean; initialTab?: 'lists' | 'di
       )}
 
       {tab === 'diary' && (
-        <div className="space-y-4 px-4 pt-2">
+        <div className="space-y-4 px-4 pt-5">
           <div className="flex items-center justify-between border-b border-[#202934] pb-2">
             <div>
               <h2 className="text-xs font-bold text-white uppercase tracking-wider font-mono">Reading diary</h2>
@@ -265,7 +269,7 @@ export const ListsScreen: React.FC<{ active: boolean; initialTab?: 'lists' | 'di
               title="Your diary is empty"
               body="Every book you log shows up here, by the date you finished it."
               action={
-                <button type="button" onClick={() => ui.open({ type: 'log' })} className="px-4 py-2 rounded-lg bg-[#15E558] text-black text-xs font-bold">
+                <button type="button" onClick={() => ui.open({ type: 'log' })} className="px-4 py-2 rounded-lg bg-[#00E054] text-black text-xs font-bold">
                   Log a book
                 </button>
               }
@@ -291,7 +295,7 @@ export const ListsScreen: React.FC<{ active: boolean; initialTab?: 'lists' | 'di
       )}
 
       {tab === 'discover' && (
-        <div className="space-y-3 pt-2 px-4">
+        <div className="space-y-3 pt-5 px-4">
           <h2 className="text-sm font-bold text-white">Popular lists from the community</h2>
           {community.map((list) => {
             const liked = lib.likedListIds.includes(list.id);
@@ -301,7 +305,7 @@ export const ListsScreen: React.FC<{ active: boolean; initialTab?: 'lists' | 'di
                 key={list.id}
                 type="button"
                 onClick={() => ui.open({ type: 'list', listId: list.id })}
-                className="w-full p-3 rounded-xl bg-[#1a222c] border border-[#273545] hover:border-[#15E558] transition-colors flex gap-3 items-center text-left"
+                className="w-full p-3 rounded-xl bg-[#1a222c] border border-[#273545] hover:border-[#00E054] transition-colors flex gap-3 items-center text-left"
               >
                 <span className="flex -space-x-5 shrink-0">
                   {covers.map((b, i) => (

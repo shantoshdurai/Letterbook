@@ -102,7 +102,7 @@ export const ListDetailModal: React.FC<{ z: number; listId: string }> = ({ z, li
             title="No books yet"
             body={mine ? 'Long-press any book and choose “Add to a list”, or edit this list to add books.' : undefined}
             action={mine ? (
-              <button type="button" onClick={() => ui.open({ type: 'createList', editListId: list.id })} className="px-4 py-2 rounded-lg bg-[#15E558] text-black text-xs font-bold">
+              <button type="button" onClick={() => ui.open({ type: 'createList', editListId: list.id })} className="px-4 py-2 rounded-lg bg-[#00E054] text-black text-xs font-bold">
                 Add books
               </button>
             ) : undefined}

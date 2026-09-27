@@ -41,8 +41,13 @@ export const Avatar: React.FC<{ src?: string; name: string; className?: string }
   const [failed, setFailed] = useState(false);
   if (!src || failed) {
     return (
-      <div className={`${className} rounded-full bg-gradient-to-br from-[#15E558] to-[#40BCF4] text-[#0d1013] font-extrabold flex items-center justify-center shrink-0 select-none`} aria-hidden="true">
-        <span className="text-[0.8em] leading-none" style={{ fontSize: 'min(1rem, 40%)' }}>{initials(name)}</span>
+      <div className={`${className} rounded-full bg-gradient-to-br from-[#00E054] to-[#40BCF4] shrink-0 select-none`} aria-hidden="true">
+        {/* SVG text scales with the circle, so initials read at any avatar size. */}
+        <svg viewBox="0 0 40 40" className="w-full h-full">
+          <text x="20" y="20" dy="0.35em" textAnchor="middle" fontSize="15" fontWeight="800" fill="#14181c" fontFamily="Inter, sans-serif">
+            {initials(name)}
+          </text>
+        </svg>
       </div>
     );
   }
@@ -76,15 +81,16 @@ export const BookPoster: React.FC<{
         role="button"
         tabIndex={0}
         aria-label={`${book.title} by ${book.author}`}
-        className="group relative aspect-[2/3] rounded-md overflow-hidden bg-[#1a2330] border border-[#253342] hover:border-[#15E558]/80 transition-all cursor-pointer book-shadow active:scale-[0.97]"
+        title={`${book.title}${book.year ? ` (${book.year})` : ''}`}
+        className="group poster-frame aspect-[2/3] cursor-pointer transition-transform active:scale-[0.97]"
       >
         <BookCover book={book} />
-        <div className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-r from-black/50 to-transparent pointer-events-none" />
         {typeof rank === 'number' && (
-          <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-mono font-bold text-[#15E558]">#{rank}</div>
+          <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-sm bg-black/75 text-[10px] font-mono font-bold text-white">{rank}</div>
         )}
         {badge}
         {onToggleWatchlist && (
+          // Mouse users get a hover action like letterboxd.com; touch users long-press for the quick menu.
           <button
             type="button"
             onClick={(e) => {
@@ -95,8 +101,8 @@ export const BookPoster: React.FC<{
             onMouseDown={(e) => e.stopPropagation()}
             aria-label={isWatchlisted ? `Remove ${book.title} from watchlist` : `Add ${book.title} to watchlist`}
             aria-pressed={Boolean(isWatchlisted)}
-            className={`absolute top-1 right-1 p-1 rounded-md backdrop-blur-md transition-colors z-10 ${
-              isWatchlisted ? 'bg-[#40BCF4] text-black' : 'bg-black/55 text-white hover:text-[#15E558]'
+            className={`hover-only absolute top-1 right-1 p-1 rounded-sm z-10 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity ${
+              isWatchlisted ? 'bg-[#40BCF4] text-black' : 'bg-black/70 text-white hover:text-[#00E054]'
             }`}
           >
             <Bookmark className={`w-3.5 h-3.5 ${isWatchlisted ? 'fill-black' : ''}`} />
@@ -105,7 +111,7 @@ export const BookPoster: React.FC<{
         {(isRead || isLiked) && (
           <div className="absolute bottom-1 right-1 flex gap-0.5 pointer-events-none">
             {isRead && (
-              <span className="p-0.5 rounded-full bg-[#15E558] text-black"><Check className="w-2.5 h-2.5 stroke-[3]" /></span>
+              <span className="p-0.5 rounded-full bg-[#00E054] text-black"><Check className="w-2.5 h-2.5 stroke-[3]" /></span>
             )}
             {isLiked && (
               <span className="p-0.5 rounded-full bg-[#FF8000] text-white"><Heart className="w-2.5 h-2.5 fill-white" /></span>
@@ -114,10 +120,10 @@ export const BookPoster: React.FC<{
         )}
       </div>
       {(showTitle || rating) ? (
-        <div className="mt-1 px-0.5">
-          {showTitle && <p className="text-[11px] font-semibold text-white truncate leading-tight">{book.title}</p>}
-          {showTitle && <p className="text-[10px] text-[#8fa0b5] truncate">{book.author}</p>}
-          {rating ? <p className="text-[10px] text-[#15E558] font-bold leading-tight">{'★'.repeat(Math.floor(rating))}{rating % 1 ? '½' : ''}</p> : null}
+        <div className="mt-1.5 px-0.5">
+          {showTitle && <p className="text-[11px] font-medium text-[#def] truncate leading-tight">{book.title}</p>}
+          {showTitle && <p className="text-[10px] text-[#678] truncate">{book.author}</p>}
+          {rating ? <p className="text-[10px] text-[#00E054] leading-tight">{'★'.repeat(Math.floor(rating))}{rating % 1 ? '½' : ''}</p> : null}
         </div>
       ) : null}
     </div>
@@ -125,7 +131,7 @@ export const BookPoster: React.FC<{
 };
 
 export const PosterSkeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`aspect-[2/3] rounded-md bg-[#1a2330] border border-[#222e3b] animate-pulse ${className}`} />
+  <div className={`aspect-[2/3] rounded bg-[#1c232b] animate-pulse ${className}`} />
 );
 
 // ---------- Full-screen overlay & header ----------
@@ -138,7 +144,7 @@ export const OverlayScreen: React.FC<{ z: number; children: React.ReactNode; lab
     aria-modal="true"
     aria-label={label}
   >
-    <div className={`relative w-full max-w-md bg-[#14181c] overflow-y-auto overscroll-contain shadow-2xl sm:border-x sm:border-[#1c2633] animate-slideUp ${className}`}>
+    <div className={`relative w-full max-w-md md:max-w-2xl bg-[#14181c] overflow-y-auto overscroll-contain shadow-2xl sm:border-x sm:border-[#2c3440] animate-slideUp ${className}`}>
       {children}
     </div>
   </div>
@@ -197,18 +203,54 @@ export const EmptyState: React.FC<{ icon?: React.ReactNode; title: string; body?
 );
 
 export const SectionHeader: React.FC<{ title: string; onMore?: () => void; right?: React.ReactNode }> = ({ title, onMore, right }) => (
-  <div className="px-4 flex items-center justify-between">
-    {onMore ? (
-      <button type="button" onClick={onMore} className="flex items-center gap-1 text-sm font-bold text-white hover:text-[#15E558] transition-colors">
-        <span>{title}</span>
-        <span className="text-[#6c7f96] text-base leading-none">›</span>
-      </button>
-    ) : (
-      <h2 className="text-sm font-bold text-white">{title}</h2>
-    )}
-    {right}
+  <div className="mx-4 flex items-end justify-between gap-3 border-b border-[#2c3440] pb-1.5">
+    <h2 className="min-w-0 truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9ab]">
+      {onMore ? (
+        <button type="button" onClick={onMore} className="uppercase tracking-[0.14em] hover:text-white transition-colors">{title}</button>
+      ) : (
+        title
+      )}
+    </h2>
+    <div className="flex items-center gap-3 shrink-0">
+      {right}
+      {onMore && (
+        <button type="button" onClick={onMore} className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#678] hover:text-white transition-colors">
+          More
+        </button>
+      )}
+    </div>
   </div>
 );
+
+// Text tabs with an underline, like the Films / Reviews / Lists switcher in the Letterboxd app.
+export function TabBar<T extends string>({ tabs, value, onChange, className = '' }: {
+  tabs: { id: T; label: string }[];
+  value: T;
+  onChange: (id: T) => void;
+  className?: string;
+}) {
+  return (
+    <div role="tablist" className={`flex gap-6 border-b border-[#2c3440] px-4 overflow-x-auto no-scrollbar ${className}`}>
+      {tabs.map((t) => {
+        const active = t.id === value;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(t.id)}
+            className={`relative -mb-px py-2.5 text-[13px] font-semibold whitespace-nowrap transition-colors border-b-2 ${
+              active ? 'text-white border-[#00E054]' : 'text-[#678] border-transparent hover:text-[#9ab]'
+            }`}
+          >
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export const Pill: React.FC<{ active: boolean; onClick: () => void; children: React.ReactNode }> = ({ active, onClick, children }) => (
   <button
@@ -231,7 +273,7 @@ export const Toggle: React.FC<{ checked: boolean; onChange: (v: boolean) => void
     </span>
     <span className="relative inline-flex shrink-0">
       <input type="checkbox" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span className="w-9 h-5 rounded-full bg-[#2c3a4b] peer-checked:bg-[#15E558] transition-colors" />
+      <span className="w-9 h-5 rounded-full bg-[#2c3a4b] peer-checked:bg-[#00E054] transition-colors" />
       <span className="absolute left-0.5 top-0.5 w-4 h-4 rounded-full bg-white transition-transform peer-checked:translate-x-4" />
     </span>
   </label>

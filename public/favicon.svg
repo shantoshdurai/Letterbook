@@ -2,7 +2,7 @@
   <rect width="48" height="48" rx="11" fill="#14181c"/>
   <g transform="translate(24 24) scale(.82) translate(-27.4 -23.1)">
     <rect x="9" y="13" width="8" height="25" rx="2" fill="#FF8000"/>
-    <rect x="19" y="8" width="8" height="30" rx="2" fill="#15E558"/>
+    <rect x="19" y="8" width="8" height="30" rx="2" fill="#00E054"/>
     <g transform="rotate(20 36.5 38)"><rect x="29" y="12" width="8" height="26" rx="2" fill="#40BCF4"/></g>
   </g>
 </svg>

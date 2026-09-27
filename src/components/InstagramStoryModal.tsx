@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Review } from '../types';
 import { X, Download, Copy, Check, Camera, Loader2, Share2, Quote } from 'lucide-react';
 import { renderStoryCard, canvasToBlob, storyFileName, StoryTheme } from '../lib/storyCard';
-import { downloadBlob } from '../lib/share';
+import { downloadBlob, shareFile } from '../lib/share';
 import { useLibrary } from '../state/library';
 import { useUI } from '../state/ui';
 
@@ -80,15 +80,9 @@ export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({ z, boo
     setIsSharing(true);
     try {
       const file = await getFile();
-      const shareData: ShareData = {
-        files: [file],
-        title: book.title,
-        text: `${book.title} by ${book.author} — on Letterbook`,
-      };
-      if (navigator.canShare?.(shareData)) {
-        await navigator.share(shareData);
-      } else {
-        downloadFile(file);
+      const result = await shareFile(file, book.title, `${book.title} by ${book.author} — on Letterbook`);
+      if (result === 'unsupported') {
+        await downloadFile(file);
         onShowToast('Story saved — add it from your camera roll in Instagram');
       }
     } catch (err) {
@@ -103,8 +97,8 @@ export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({ z, boo
   const handleDownload = async () => {
     if (isRendering) return;
     try {
-      downloadFile(await getFile());
-      onShowToast('Story image saved (1080 × 1920)');
+      const result = await downloadFile(await getFile());
+      if (result === 'saved') onShowToast('Story image saved (1080 × 1920)');
     } catch {
       onShowToast('Could not save image');
     }
@@ -163,7 +157,7 @@ export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({ z, boo
               onClick={() => setStoryTheme(t.id)}
               className={`px-3 py-1 rounded-full text-[10px] font-mono transition-all ${
                 storyTheme === t.id
-                  ? 'bg-[#15E558] text-black font-bold'
+                  ? 'bg-[#00E054] text-black font-bold'
                   : 'bg-[#1b232c] text-[#8fa0b5] hover:text-white'
               }`}
             >
@@ -196,7 +190,7 @@ export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({ z, boo
             )}
             {isRendering && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 text-[#15E558] animate-spin" />
+                <Loader2 className="w-6 h-6 text-[#00E054] animate-spin" />
               </div>
             )}
           </div>
@@ -229,7 +223,7 @@ export const InstagramStoryModal: React.FC<InstagramStoryModalProps> = ({ z, boo
               disabled={isRendering}
               className="flex-1 py-2.5 rounded-xl bg-[#202c3a] hover:bg-[#28384a] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
             >
-              {copied ? <Check className="w-4 h-4 text-[#15E558]" /> : <Copy className="w-4 h-4" />}
+              {copied ? <Check className="w-4 h-4 text-[#00E054]" /> : <Copy className="w-4 h-4" />}
               {copied ? 'Copied' : 'Copy'}
             </button>
             {justLogged && (

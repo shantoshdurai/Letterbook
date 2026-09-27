@@ -156,7 +156,7 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
           {toastState.tone === 'error' ? (
             <AlertTriangle className="w-4 h-4 shrink-0 text-[#ff6b6b]" />
           ) : (
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-[#15E558]" />
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-[#00E054]" />
           )}
           <span className="flex-1 leading-snug">{toastState.message}</span>
           {toastState.action && (
@@ -166,7 +166,7 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
                 toastState.action?.onClick();
                 setToastState(null);
               }}
-              className="shrink-0 px-2.5 py-1 rounded-lg bg-[#15E558] text-black font-bold"
+              className="shrink-0 px-2.5 py-1 rounded-lg bg-[#00E054] text-black font-bold"
             >
               {toastState.action.label}
             </button>
@@ -187,7 +187,7 @@ export const UIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
                 type="button"
                 autoFocus
                 onClick={() => answer(true)}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-bold ${confirmState.destructive ? 'bg-[#e5484d] text-white' : 'bg-[#15E558] text-black'}`}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-bold ${confirmState.destructive ? 'bg-[#e5484d] text-white' : 'bg-[#00E054] text-black'}`}
               >
                 {confirmState.confirmLabel || 'OK'}
               </button>

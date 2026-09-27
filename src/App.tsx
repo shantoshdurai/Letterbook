@@ -5,7 +5,7 @@ import { UIProvider, useUI, Overlay } from './state/ui';
 import { Session, loadSession, saveSession, deleteAccountData } from './lib/auth';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LoginScreen } from './components/LoginScreen';
-import { BottomNav } from './components/BottomNav';
+import { BottomNav, TopNav } from './components/BottomNav';
 import { HomeScreen } from './components/HomeScreen';
 import { SearchScreen } from './components/SearchScreen';
 import { ListsScreen } from './components/ListsScreen';
@@ -72,12 +72,23 @@ const Shell: React.FC<ShellProps> = (shell) => {
   }, [tab, lib.profile.name]);
 
   return (
-    <div className="min-h-[100dvh] bg-[#0d1013] flex justify-center">
-      <main className="w-full max-w-md bg-[#14181c] min-h-[100dvh] relative sm:border-x sm:border-[#1c2633]">
+    <div className="min-h-[100dvh] bg-[#14181c]">
+      <TopNav
+        activeTab={tab}
+        onTabChange={changeTab}
+        onOpenLogModal={() => ui.open({ type: 'log' })}
+        profile={lib.profile}
+        unread={lib.unreadNotifications}
+        onOpenNotifications={() => ui.open({ type: 'notifications' })}
+      />
+      <main className="mx-auto w-full max-w-md md:max-w-[960px] min-h-[100dvh] relative">
         <HomeScreen active={tab === 'home'} />
         <SearchScreen active={tab === 'search'} />
-        <ListsScreen key={listsView.nonce} active={tab === 'lists'} initialTab={listsView.tab} />
-        <ProfileScreen active={tab === 'profile'} onOpenDiary={() => openLists('diary')} onOpenLists={() => openLists('lists')} />
+        {/* Lists and Profile read best as a narrower column on wide screens. */}
+        <div className="md:max-w-2xl md:mx-auto">
+          <ListsScreen key={listsView.nonce} active={tab === 'lists'} initialTab={listsView.tab} />
+          <ProfileScreen active={tab === 'profile'} onOpenDiary={() => openLists('diary')} onOpenLists={() => openLists('lists')} />
+        </div>
 
         <BottomNav activeTab={tab} onTabChange={changeTab} onOpenLogModal={() => ui.open({ type: 'log' })} profile={lib.profile} />
 

@@ -16,12 +16,12 @@ export interface StoryCardOptions {
 export const STORY_WIDTH = 1080;
 export const STORY_HEIGHT = 1920;
 
-const GREEN = '#15E558';
+const GREEN = '#00E054';
 const ORANGE = '#FF8000';
 const BLUE = '#40BCF4';
 const INK = '#14181c';
 
-const SANS = "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+const SANS = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 const SERIF = "'Playfair Display', Georgia, 'Times New Roman', serif";
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
 

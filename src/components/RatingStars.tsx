@@ -25,7 +25,7 @@ export const RatingStars: React.FC<RatingStarsProps> = ({
   showNumber = false,
   interactive = false,
   onRatingChange,
-  color = '#15E558',
+  color = '#00E054',
   label = 'Rating',
 }) => {
   const [hover, setHover] = useState<number | null>(null);

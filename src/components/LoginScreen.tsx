@@ -29,7 +29,7 @@ const Field: React.FC<{
 );
 
 const inputClass =
-  'w-full bg-[#18222d] border border-[#2d3d50] focus:border-[#15E558] rounded-xl px-3.5 py-3 text-sm text-white placeholder-[#536579] focus:outline-none transition-colors';
+  'w-full bg-[#18222d] border border-[#2d3d50] focus:border-[#00E054] rounded-xl px-3.5 py-3 text-sm text-white placeholder-[#536579] focus:outline-none transition-colors';
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => {
   const [view, setView] = useState<'welcome' | 'signin' | 'signup' | 'genres'>(() => (listAccounts().length ? 'signin' : 'welcome'));
@@ -138,7 +138,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
   );
 
   return (
-    <div className="min-h-[100dvh] bg-[#0d1013] flex justify-center text-white">
+    <div className="min-h-[100dvh] bg-[#14181c] flex justify-center text-white">
       <main className="relative w-full max-w-md min-h-[100dvh] bg-[#14181c] overflow-hidden flex flex-col pt-safe pb-safe">
         {backdrop}
 
@@ -172,7 +172,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                 <button
                   type="button"
                   onClick={() => go('signup')}
-                  className="w-full py-3.5 rounded-xl bg-[#15E558] hover:bg-[#12cb4d] active:scale-[0.98] text-black text-sm font-bold transition-all shadow-[0_0_20px_rgba(21,229,88,0.25)]"
+                  className="w-full py-3.5 rounded-xl bg-[#00E054] hover:bg-[#12cb4d] active:scale-[0.98] text-black text-sm font-bold transition-all shadow-[0_0_20px_rgba(0,224,84,0.25)]"
                 >
                   Create account
                 </button>
@@ -201,10 +201,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                     aria-selected={slide === idx}
                     aria-label={b.title}
                     onClick={() => setSlide(idx)}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${slide === idx ? 'w-5 bg-[#15E558]' : 'w-1.5 bg-white/30'}`}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${slide === idx ? 'w-5 bg-[#00E054]' : 'w-1.5 bg-white/30'}`}
                   />
                 ))}
               </div>
+              <p className="text-[10px] leading-relaxed text-white/45">
+                Open source · Inspired by{' '}
+                <a href="https://letterboxd.com" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-white">Letterboxd</a>
+                {' '}· Book data from{' '}
+                <a href="https://openlibrary.org" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-white">Open Library</a>
+              </p>
             </div>
           </div>
         )}
@@ -222,7 +228,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                 <p className="text-xs text-[#8fa0b5]">Sign in with your username or email.</p>
               </div>
               <form onSubmit={handleSignIn} className="space-y-4" noValidate>
-                <Field icon={<User className="w-3 h-3 text-[#15E558]" />} label="Username or email">
+                <Field icon={<User className="w-3 h-3 text-[#00E054]" />} label="Username or email">
                   <input
                     className={inputClass}
                     value={identifier}
@@ -233,7 +239,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                     required
                   />
                 </Field>
-                <Field icon={<Lock className="w-3 h-3 text-[#15E558]" />} label="Password">
+                <Field icon={<Lock className="w-3 h-3 text-[#00E054]" />} label="Password">
                   <div className="relative">
                     <input
                       className={`${inputClass} pr-10`}
@@ -251,7 +257,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                 <button
                   type="submit"
                   disabled={busy || !identifier || !password}
-                  className="w-full py-3.5 rounded-xl bg-[#15E558] hover:bg-[#12cb4d] disabled:opacity-50 text-black text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                  className="w-full py-3.5 rounded-xl bg-[#00E054] hover:bg-[#12cb4d] disabled:opacity-50 text-black text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                 >
                   {busy && <Loader2 className="w-4 h-4 animate-spin" />}
                   Sign in
@@ -259,7 +265,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
               </form>
               <p className="text-center text-xs text-[#8fa0b5]">
                 New to Letterbook?{' '}
-                <button type="button" onClick={() => go('signup')} className="text-[#15E558] font-bold">
+                <button type="button" onClick={() => go('signup')} className="text-[#00E054] font-bold">
                   Create an account
                 </button>
               </p>
@@ -281,7 +287,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                 <p className="text-xs text-[#8fa0b5]">Keep a diary of everything you read.</p>
               </div>
               <form onSubmit={handleSignUp} className="space-y-3.5" noValidate>
-                <Field icon={<User className="w-3 h-3 text-[#15E558]" />} label="Your name">
+                <Field icon={<User className="w-3 h-3 text-[#00E054]" />} label="Your name">
                   <input
                     className={inputClass}
                     value={name}
@@ -294,7 +300,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                     required
                   />
                 </Field>
-                <Field icon={<AtSign className="w-3 h-3 text-[#15E558]" />} label="Username">
+                <Field icon={<AtSign className="w-3 h-3 text-[#00E054]" />} label="Username">
                   <input
                     className={inputClass}
                     value={username}
@@ -308,7 +314,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                     required
                   />
                 </Field>
-                <Field icon={<Mail className="w-3 h-3 text-[#15E558]" />} label="Email">
+                <Field icon={<Mail className="w-3 h-3 text-[#00E054]" />} label="Email">
                   <input
                     className={inputClass}
                     type="email"
@@ -320,7 +326,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                     required
                   />
                 </Field>
-                <Field icon={<Lock className="w-3 h-3 text-[#15E558]" />} label="Password (8+ characters)">
+                <Field icon={<Lock className="w-3 h-3 text-[#00E054]" />} label="Password (8+ characters)">
                   <div className="relative">
                     <input
                       className={`${inputClass} pr-10`}
@@ -336,7 +342,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                   </div>
                 </Field>
                 <label className="flex items-start gap-2.5 pt-1 cursor-pointer">
-                  <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 accent-[#15E558] w-4 h-4 shrink-0" />
+                  <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 accent-[#00E054] w-4 h-4 shrink-0" />
                   <span className="text-[11px] text-[#8fa0b5] leading-relaxed">
                     I agree to the Letterbook terms and understand my data is stored on this device.
                   </span>
@@ -345,7 +351,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                 <button
                   type="submit"
                   disabled={busy}
-                  className="w-full py-3.5 rounded-xl bg-[#15E558] hover:bg-[#12cb4d] disabled:opacity-50 text-black text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                  className="w-full py-3.5 rounded-xl bg-[#00E054] hover:bg-[#12cb4d] disabled:opacity-50 text-black text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                 >
                   {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   Continue
@@ -354,7 +360,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
               </form>
               <p className="text-center text-xs text-[#8fa0b5]">
                 Already have an account?{' '}
-                <button type="button" onClick={() => go('signin')} className="text-[#15E558] font-bold">
+                <button type="button" onClick={() => go('signin')} className="text-[#00E054] font-bold">
                   Sign in
                 </button>
               </p>
@@ -365,7 +371,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
         {view === 'genres' && pending && (
           <div className="relative z-10 flex-1 flex flex-col px-6 pb-8 pt-10 animate-fadeIn">
             <div className="space-y-2">
-              <p className="text-xs font-mono text-[#15E558] uppercase tracking-wider">Almost there</p>
+              <p className="text-xs font-mono text-[#00E054] uppercase tracking-wider">Almost there</p>
               <h1 className="text-2xl font-extrabold tracking-tight">What do you like to read?</h1>
               <p className="text-xs text-[#8fa0b5]">Pick a few genres and we'll tailor your home feed. You can change this later.</p>
             </div>
@@ -379,7 +385,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
                     aria-pressed={on}
                     onClick={() => setGenres((prev) => (on ? prev.filter((x) => x !== g) : [...prev, g]))}
                     className={`px-3.5 py-2 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all ${
-                      on ? 'bg-[#15E558] text-black' : 'bg-[#1e2a38] text-[#b5c3d3] border border-[#29384b]'
+                      on ? 'bg-[#00E054] text-black' : 'bg-[#1e2a38] text-[#b5c3d3] border border-[#29384b]'
                     }`}
                   >
                     {on && <Check className="w-3 h-3 stroke-[3]" />}
@@ -392,7 +398,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated }) => 
             <button
               type="button"
               onClick={finishOnboarding}
-              className="w-full py-3.5 rounded-xl bg-[#15E558] hover:bg-[#12cb4d] text-black text-sm font-bold transition-all active:scale-[0.98]"
+              className="w-full py-3.5 rounded-xl bg-[#00E054] hover:bg-[#12cb4d] text-black text-sm font-bold transition-all active:scale-[0.98]"
             >
               {genres.length ? `Start reading (${genres.length})` : 'Skip for now'}
             </button>

@@ -8,7 +8,8 @@ import { fetchTrending, fetchNewReleases, fetchForGenres, peekCachedBooks } from
 import { communityActivity, journalArticles, seedBooks } from '../data/seed';
 import { relativeTime, starText } from '../lib/format';
 import { BrandLogo } from './BrandLogo';
-import { Avatar, BookCover, BookPoster, Pill, PosterSkeleton, SectionHeader } from './ui';
+import { Avatar, BookCover, BookPoster, PosterSkeleton, SectionHeader, TabBar } from './ui';
+import { CreditsFooter } from './CreditsFooter';
 
 const DEFAULT_GENRES = ['Literary Fiction', 'Fantasy'];
 
@@ -28,18 +29,18 @@ const Shelf: React.FC<{
     ui.toast(added ? `Added "${b.title}" to your watchlist` : `Removed "${b.title}" from your watchlist`);
   };
   return (
-    <section className="space-y-2.5" aria-label={title}>
+    <section className="space-y-3" aria-label={title}>
       <SectionHeader
         title={title}
         onMore={books.length ? onMore : undefined}
-        right={subtitle ? <span className="text-[10px] text-[#6c7f96] truncate max-w-[45%]">{subtitle}</span> : undefined}
+        right={subtitle ? <span className="hidden sm:inline text-[10px] text-[#678] truncate">{subtitle}</span> : undefined}
       />
-      <div className="flex gap-2.5 overflow-x-auto px-4 pb-1 no-scrollbar snap-x">
+      <div className="grid grid-flow-col auto-cols-[calc((100%-1.5rem)/4.3)] md:auto-cols-[calc((100%-3.75rem)/6)] gap-2 md:gap-3 overflow-x-auto px-4 scroll-px-4 md:px-0 md:mx-4 md:scroll-px-0 no-scrollbar snap-x">
         {books.map((book) => (
           <BookPoster
             key={book.id}
             book={book}
-            className="w-[6.5rem] shrink-0 snap-start"
+            className="snap-start"
             onSelect={(b) => ui.open({ type: 'book', book: b })}
             onLongPress={(b) => {
               lib.actions.upsertBooks([b]);
@@ -47,21 +48,20 @@ const Shelf: React.FC<{
             }}
             isWatchlisted={lib.watchlistIds.includes(book.id)}
             onToggleWatchlist={toggleWatchlist}
-            isRead={lib.readIds.includes(book.id)}
           />
         ))}
-        {loading && books.length === 0 && Array.from({ length: 5 }, (_, i) => <PosterSkeleton key={i} className="w-[6.5rem] shrink-0" />)}
-        {!loading && error && books.length === 0 && (
-          <div className="w-full py-6 rounded-xl border border-dashed border-[#2a3848] text-center text-xs text-[#7d8fa3] space-y-2">
-            <p>{error}</p>
-            {onRetry && (
-              <button type="button" onClick={onRetry} className="inline-flex items-center gap-1 text-[#40BCF4] font-semibold">
-                <RefreshCw className="w-3 h-3" /> Try again
-              </button>
-            )}
-          </div>
-        )}
+        {loading && books.length === 0 && Array.from({ length: 6 }, (_, i) => <PosterSkeleton key={i} />)}
       </div>
+      {!loading && error && books.length === 0 && (
+        <div className="mx-4 py-5 rounded border border-dashed border-[#2c3440] text-center text-xs text-[#678] space-y-2">
+          <p>{error}</p>
+          {onRetry && (
+            <button type="button" onClick={onRetry} className="inline-flex items-center gap-1 text-[#40BCF4] font-semibold">
+              <RefreshCw className="w-3 h-3" /> Try again
+            </button>
+          )}
+        </div>
+      )}
     </section>
   );
 };
@@ -79,47 +79,54 @@ export const HomeScreen: React.FC<{ active: boolean }> = ({ active }) => {
   const releases = useAsyncBooks('new', () => fetchNewReleases(18));
 
   const watchlist = lib.resolve(lib.watchlistIds).slice(0, 12);
+  const firstName = lib.profile.name.split(' ')[0];
 
   const members = Array.from(new Map(communityActivity.map((a) => [a.user.id, a.user])).values());
   const feed = communityActivity.filter((a) => !memberFilter || a.user.id === memberFilter);
 
   return (
-    <div className="min-h-[100dvh] bg-[#14181c] text-white screen-bottom-pad" hidden={!active}>
-      <header className="sticky top-0 z-30 bg-[#14181c]/95 backdrop-blur-md pt-safe">
-        <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+    <div className="min-h-[calc(100dvh-var(--app-top))] bg-[#14181c] text-white screen-bottom-pad" hidden={!active}>
+      <header className="sticky-top z-30 bg-[#14181c]/95 backdrop-blur-md pt-safe">
+        <div className="px-4 pt-3 pb-1 flex items-center justify-between md:hidden">
           <BrandLogo size="sm" />
           <button
             type="button"
             onClick={() => ui.open({ type: 'notifications' })}
             aria-label={lib.unreadNotifications ? `Notifications, ${lib.unreadNotifications} unread` : 'Notifications'}
-            className="relative p-2 rounded-full text-white hover:bg-[#202934] transition-colors"
+            className="relative p-2 -mr-2 rounded-full text-[#9ab] hover:text-white transition-colors"
           >
-            <Bell className="w-6 h-6" />
+            <Bell className="w-5 h-5" />
             {lib.unreadNotifications > 0 && (
-              <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-[#40BCF4] text-[#14181c] font-mono text-[9px] font-extrabold flex items-center justify-center border-2 border-[#14181c]">
-                {lib.unreadNotifications > 9 ? '9+' : lib.unreadNotifications}
-              </span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#40BCF4] ring-2 ring-[#14181c]" />
             )}
           </button>
         </div>
-        <div className="px-4 pb-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <Pill active={tab === 'foryou'} onClick={() => setTab('foryou')}>For You</Pill>
-          <Pill active={tab === 'community'} onClick={() => setTab('community')}>Community</Pill>
-          <Pill active={tab === 'journal'} onClick={() => setTab('journal')}>Journal</Pill>
-        </div>
+        <TabBar
+          value={tab}
+          onChange={setTab}
+          tabs={[
+            { id: 'foryou', label: 'Books' },
+            { id: 'community', label: 'Activity' },
+            { id: 'journal', label: 'Journal' },
+          ]}
+        />
       </header>
 
       {!online && (
-        <div className="mx-4 mt-2 px-3 py-2 rounded-lg bg-[#2a2415] border border-[#4a3d1c] text-[11px] text-[#f2c66d] flex items-center gap-2">
+        <div className="mx-4 mt-3 px-3 py-2 rounded-lg bg-[#2a2415] border border-[#4a3d1c] text-[11px] text-[#f2c66d] flex items-center gap-2">
           <WifiOff className="w-3.5 h-3.5" /> You're offline. Your diary still works; new books will load when you reconnect.
         </div>
       )}
 
       {tab === 'foryou' && (
-        <div className="space-y-6 pt-3">
+        <div className="space-y-8 pt-4">
+          <p className="px-4 text-[13px] text-[#9ab] leading-relaxed">
+            {lib.session.isGuest ? 'Welcome to Letterbook.' : <>Welcome back, <span className="text-white font-semibold">{firstName}</span>.</>}{' '}
+            Here&rsquo;s what readers are opening this week.
+          </p>
           {watchlist.length > 0 && (
             <Shelf
-              title="Up next from your watchlist"
+              title="From your watchlist"
               books={watchlist}
               onMore={() => ui.open({ type: 'grid', title: 'Your Watchlist', bookIds: lib.watchlistIds })}
             />
@@ -150,18 +157,19 @@ export const HomeScreen: React.FC<{ active: boolean }> = ({ active }) => {
             onMore={() => ui.open({ type: 'grid', title: 'New releases', source: 'new' })}
           />
           <Shelf
-            title="Letterbook staff picks"
+            title="Staff picks"
             books={seedBooks}
             onMore={() => ui.open({ type: 'grid', title: 'Staff picks', bookIds: seedBooks.map((b) => b.id) })}
           />
+          <CreditsFooter />
         </div>
       )}
 
       {tab === 'community' && (
-        <div className="space-y-6 pt-3">
-          <section className="space-y-2" aria-label="Members">
-            <h2 className="px-4 text-xs font-bold text-[#8fa0b5] uppercase tracking-wider">Recent activity from members</h2>
-            <div className="flex gap-4 overflow-x-auto px-4 pb-1 no-scrollbar">
+        <div className="space-y-6 pt-4">
+          <section className="space-y-3" aria-label="Members">
+            <SectionHeader title="Members" />
+            <div className="flex gap-4 overflow-x-auto px-4 no-scrollbar">
               {members.map((m) => {
                 const active = memberFilter === m.id;
                 return (
@@ -170,102 +178,104 @@ export const HomeScreen: React.FC<{ active: boolean }> = ({ active }) => {
                     type="button"
                     onClick={() => setMemberFilter(active ? null : m.id)}
                     aria-pressed={active}
-                    className="flex flex-col items-center gap-1 shrink-0"
+                    className="flex flex-col items-center gap-1.5 shrink-0"
                   >
-                    <span className={`w-14 h-14 rounded-full p-0.5 border-2 transition-colors ${active ? 'border-[#40BCF4]' : 'border-[#15E558]'}`}>
+                    <span className={`w-12 h-12 rounded-full p-0.5 ring-1 transition-colors ${active ? 'ring-2 ring-[#00E054]' : 'ring-[#2c3440]'}`}>
                       <Avatar src={m.avatar} name={m.name} className="w-full h-full" />
                     </span>
-                    <span className={`text-[11px] font-medium truncate max-w-[64px] ${active ? 'text-white' : 'text-[#b0c0d0]'}`}>{m.name.split(' ')[0]}</span>
+                    <span className={`text-[11px] truncate max-w-[64px] ${active ? 'text-white' : 'text-[#9ab]'}`}>{m.name.split(' ')[0]}</span>
                   </button>
                 );
               })}
             </div>
           </section>
 
-          <section className="space-y-3 px-4" aria-label="Activity">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-white">{memberFilter ? `${members.find((m) => m.id === memberFilter)?.name}'s activity` : 'Latest activity'}</h2>
-              {memberFilter && (
-                <button type="button" onClick={() => setMemberFilter(null)} className="text-[11px] text-[#40BCF4]">Show all</button>
-              )}
-            </div>
-            {feed.map((act) => {
-              const book = act.bookId ? lib.catalog[act.bookId] : undefined;
-              const liked = lib.likedActivityIds.includes(act.id) !== Boolean(act.isLiked);
-              const likes = act.likesCount + (liked === Boolean(act.isLiked) ? 0 : liked ? 1 : -1);
-              const verb = act.type === 'reviewed' ? 'reviewed' : act.type === 'added_watchlist' ? 'wants to read' : act.type === 'liked' ? 'liked' : 'read';
-              return (
-                <article key={act.id} className="p-3.5 rounded-xl bg-[#182028] border border-[#232f3d] flex gap-3">
-                  {book && (
-                    <button type="button" onClick={() => ui.open({ type: 'book', book })} className="w-14 shrink-0 aspect-[2/3] rounded overflow-hidden border border-[#2c3a4a]" aria-label={book.title}>
-                      <BookCover book={book} />
-                    </button>
-                  )}
-                  <div className="flex-1 min-w-0 space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <Avatar src={act.user.avatar} name={act.user.name} className="w-5 h-5" />
-                      <p className="text-[11px] text-[#8fa0b5] truncate">
-                        <span className="font-bold text-white">{act.user.name}</span> {verb}
-                      </p>
-                      <span className="ml-auto text-[10px] text-[#6c7f96] shrink-0">{relativeTime(act.timestamp)}</span>
-                    </div>
+          <section className="space-y-1" aria-label="Activity">
+            <SectionHeader
+              title={memberFilter ? `${members.find((m) => m.id === memberFilter)?.name}` : 'Recent activity'}
+              right={memberFilter ? (
+                <button type="button" onClick={() => setMemberFilter(null)} className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#40BCF4]">All</button>
+              ) : undefined}
+            />
+            <div className="divide-y divide-[#2c3440]/70">
+              {feed.map((act) => {
+                const book = act.bookId ? lib.catalog[act.bookId] : undefined;
+                const liked = lib.likedActivityIds.includes(act.id) !== Boolean(act.isLiked);
+                const likes = act.likesCount + (liked === Boolean(act.isLiked) ? 0 : liked ? 1 : -1);
+                const verb = act.type === 'reviewed' ? 'reviewed' : act.type === 'added_watchlist' ? 'wants to read' : act.type === 'liked' ? 'liked' : 'read';
+                return (
+                  <article key={act.id} className="px-4 py-4 flex gap-3.5">
                     {book && (
-                      <button type="button" onClick={() => ui.open({ type: 'book', book })} className="text-left text-xs font-bold text-white hover:text-[#15E558]">
-                        {book.title} <span className="font-normal text-[#6c7f96]">{book.year || ''}</span>
+                      <button type="button" onClick={() => ui.open({ type: 'book', book })} className="poster-frame w-16 shrink-0 aspect-[2/3] self-start" aria-label={book.title}>
+                        <BookCover book={book} />
                       </button>
                     )}
-                    {act.rating ? <p className="text-xs text-[#15E558] font-bold">{starText(act.rating)}</p> : null}
-                    {act.review && (
-                      <p className="text-xs text-[#cad5e0] leading-relaxed line-clamp-3">{act.review.content}</p>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => lib.actions.toggleActivityLike(act.id)}
-                      aria-pressed={liked}
-                      className={`flex items-center gap-1 text-[11px] pt-0.5 transition-colors ${liked ? 'text-[#FF8000]' : 'text-[#6c7f96] hover:text-white'}`}
-                    >
-                      <Heart className={`w-3.5 h-3.5 ${liked ? 'fill-[#FF8000]' : ''}`} />
-                      {likes} {likes === 1 ? 'like' : 'likes'}
-                    </button>
-                  </div>
-                </article>
-              );
-            })}
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      {book && (
+                        <button type="button" onClick={() => ui.open({ type: 'book', book })} className="block text-left text-[15px] font-bold text-white leading-snug hover:text-[#40BCF4]">
+                          {book.title} <span className="font-normal text-[#678] text-sm">{book.year || ''}</span>
+                        </button>
+                      )}
+                      <div className="flex items-center gap-2 text-[11px] text-[#678]">
+                        <Avatar src={act.user.avatar} name={act.user.name} className="w-4 h-4" />
+                        <span className="truncate">
+                          <span className="font-semibold text-[#9ab]">{act.user.name}</span> {verb}
+                        </span>
+                        {act.rating ? <span className="text-[#00E054] shrink-0">{starText(act.rating)}</span> : null}
+                        <span className="ml-auto shrink-0">{relativeTime(act.timestamp)}</span>
+                      </div>
+                      {act.review && (
+                        <p className="text-[13px] text-[#9ab] leading-relaxed line-clamp-3">{act.review.content}</p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => lib.actions.toggleActivityLike(act.id)}
+                        aria-pressed={liked}
+                        className={`flex items-center gap-1 text-[11px] transition-colors ${liked ? 'text-[#FF8000]' : 'text-[#678] hover:text-white'}`}
+                      >
+                        <Heart className={`w-3.5 h-3.5 ${liked ? 'fill-[#FF8000]' : ''}`} />
+                        {likes} {likes === 1 ? 'like' : 'likes'}
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           </section>
         </div>
       )}
 
       {tab === 'journal' && (
-        <div className="space-y-5 px-4 pt-3">
+        <div className="space-y-6 pt-4">
           {journalArticles[0] && (
             <button
               type="button"
               onClick={() => ui.open({ type: 'article', articleId: journalArticles[0].id })}
-              className="group relative block w-full text-left rounded-2xl overflow-hidden aspect-[16/10] border border-[#273545] shadow-xl"
+              className="group relative block mx-4 w-[calc(100%-2rem)] text-left rounded overflow-hidden aspect-[16/9] md:aspect-[21/9]"
             >
-              <img src={journalArticles[0].coverImage} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-              <span className="absolute top-3 left-3 px-2 py-0.5 rounded bg-[#40BCF4] text-black font-mono text-[9px] font-extrabold uppercase">Featured</span>
-              <div className="absolute inset-x-0 bottom-0 p-4">
-                <h2 className="text-lg font-extrabold text-white leading-tight">{journalArticles[0].title}</h2>
-                <p className="text-xs text-[#a0b0c0] line-clamp-2 mt-1">{journalArticles[0].subtitle}</p>
+              <img src={journalArticles[0].coverImage} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#14181c] via-[#14181c]/40 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-4 md:p-6">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#00E054] mb-1">Featured</p>
+                <h2 className="font-serif text-xl md:text-2xl font-bold text-white leading-tight">{journalArticles[0].title}</h2>
+                <p className="text-xs text-[#9ab] line-clamp-2 mt-1">{journalArticles[0].subtitle}</p>
               </div>
             </button>
           )}
-          <section className="space-y-2" aria-label="Articles">
-            <h2 className="text-xs font-bold text-[#8fa0b5] uppercase tracking-wider">Latest from the journal</h2>
-            <div className="divide-y divide-[#202934]">
+          <section className="space-y-1" aria-label="Articles">
+            <SectionHeader title="Latest from the journal" />
+            <div className="divide-y divide-[#2c3440]/70">
               {journalArticles.map((art) => (
                 <button
                   key={art.id}
                   type="button"
                   onClick={() => ui.open({ type: 'article', articleId: art.id })}
-                  className="w-full py-3 flex gap-3.5 items-center text-left group"
+                  className="w-full px-4 py-3.5 flex gap-3.5 items-center text-left group"
                 >
-                  <img src={art.coverImage} alt="" className="w-20 h-14 rounded-lg object-cover border border-[#253342] shrink-0" />
+                  <img src={art.coverImage} alt="" className="w-24 h-16 rounded object-cover shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] text-[#6c7f96] mb-0.5">{art.author} · {art.readTime}</p>
-                    <h3 className="text-xs font-bold text-white group-hover:text-[#15E558] line-clamp-2">{art.title}</h3>
+                    <h3 className="text-sm font-semibold text-white group-hover:text-[#40BCF4] line-clamp-2 leading-snug">{art.title}</h3>
+                    <p className="text-[11px] text-[#678] mt-0.5">{art.author} · {art.readTime}</p>
                   </div>
                 </button>
               ))}

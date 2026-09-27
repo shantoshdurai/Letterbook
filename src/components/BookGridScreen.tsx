@@ -78,7 +78,7 @@ export const BookGridScreen: React.FC<BookGridScreenProps> = ({ z, title, subtit
           >
             <SlidersHorizontal className="w-4 h-4" />
             {filterCount > 0 && (
-              <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#15E558] text-black text-[8px] font-bold flex items-center justify-center">{filterCount}</span>
+              <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#00E054] text-black text-[8px] font-bold flex items-center justify-center">{filterCount}</span>
             )}
           </button>
         }
@@ -93,7 +93,7 @@ export const BookGridScreen: React.FC<BookGridScreenProps> = ({ z, title, subtit
               onChange={(e) => setQ(e.target.value)}
               placeholder={`Search in ${title.toLowerCase()}…`}
               aria-label={`Search in ${title}`}
-              className="w-full pl-8 pr-3 py-2 rounded-lg bg-[#182028] border border-[#273545] text-xs text-white placeholder-[#6c7f96] focus:outline-none focus:border-[#15E558]"
+              className="w-full pl-8 pr-3 py-2 rounded-lg bg-[#182028] border border-[#273545] text-xs text-white placeholder-[#6c7f96] focus:outline-none focus:border-[#00E054]"
             />
           </div>
         </div>
@@ -110,7 +110,7 @@ export const BookGridScreen: React.FC<BookGridScreenProps> = ({ z, title, subtit
             }
           />
         ) : (
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
             {books.map((book) => (
               <BookPoster
                 key={book.id}

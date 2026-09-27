@@ -87,7 +87,7 @@ export const ListEditor: React.FC<{ z: number; editListId?: string; initialBookI
           title={editing ? 'Edit list' : 'New list'}
           onBack={ui.close}
           right={
-            <button type="submit" disabled={!title.trim()} className="px-4 py-1.5 rounded-lg bg-[#15E558] text-black text-xs font-bold disabled:opacity-40">
+            <button type="submit" disabled={!title.trim()} className="px-4 py-1.5 rounded-lg bg-[#00E054] text-black text-xs font-bold disabled:opacity-40">
               Save
             </button>
           }
@@ -102,7 +102,7 @@ export const ListEditor: React.FC<{ z: number; editListId?: string; initialBookI
               maxLength={120}
               required
               autoFocus={!editing}
-              className="mt-1 w-full px-3.5 py-3 rounded-xl bg-[#1a2330] border border-[#273545] text-white text-sm focus:outline-none focus:border-[#15E558]"
+              className="mt-1 w-full px-3.5 py-3 rounded-xl bg-[#1a2330] border border-[#273545] text-white text-sm focus:outline-none focus:border-[#00E054]"
             />
           </label>
           <label className="block">
@@ -113,7 +113,7 @@ export const ListEditor: React.FC<{ z: number; editListId?: string; initialBookI
               placeholder="What ties these books together?"
               rows={3}
               maxLength={1000}
-              className="mt-1 w-full px-3.5 py-3 rounded-xl bg-[#1a2330] border border-[#273545] text-white text-sm focus:outline-none focus:border-[#15E558] resize-y"
+              className="mt-1 w-full px-3.5 py-3 rounded-xl bg-[#1a2330] border border-[#273545] text-white text-sm focus:outline-none focus:border-[#00E054] resize-y"
             />
           </label>
           <div className="grid gap-2">
@@ -127,7 +127,7 @@ export const ListEditor: React.FC<{ z: number; editListId?: string; initialBookI
             <ol className="space-y-1.5">
               {selected.map((b, i) => (
                 <li key={b.id} className="flex items-center gap-2.5 p-2 rounded-xl bg-[#18212c] border border-[#243142]">
-                  {isRanked && <span className="w-5 text-center font-mono text-xs text-[#15E558] font-bold">{i + 1}</span>}
+                  {isRanked && <span className="w-5 text-center font-mono text-xs text-[#00E054] font-bold">{i + 1}</span>}
                   <span className="w-8 aspect-[2/3] rounded overflow-hidden shrink-0 bg-[#10151c]"><BookCover book={b} /></span>
                   <span className="flex-1 min-w-0">
                     <span className="text-xs font-bold text-white truncate block">{b.title}</span>
@@ -157,7 +157,7 @@ export const ListEditor: React.FC<{ z: number; editListId?: string; initialBookI
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search by title or author"
                 aria-label="Search books to add"
-                className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-[#1a2330] border border-[#273545] text-white text-sm focus:outline-none focus:border-[#15E558]"
+                className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-[#1a2330] border border-[#273545] text-white text-sm focus:outline-none focus:border-[#00E054]"
               />
               {loading && <Loader2 className="w-4 h-4 text-[#8fa0b5] absolute right-3 top-1/2 -translate-y-1/2 animate-spin" />}
             </div>
@@ -169,7 +169,7 @@ export const ListEditor: React.FC<{ z: number; editListId?: string; initialBookI
                     <span className="text-xs font-bold text-white truncate block">{b.title}</span>
                     <span className="text-[10px] text-[#8fa0b5] truncate block">{b.author}{b.year ? ` · ${b.year}` : ''}</span>
                   </span>
-                  <Plus className="w-4 h-4 text-[#15E558]" />
+                  <Plus className="w-4 h-4 text-[#00E054]" />
                 </button>
               ))}
             </div>

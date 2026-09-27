@@ -18,7 +18,7 @@ const Chip: React.FC<{ active: boolean; onClick: () => void; children: React.Rea
     aria-pressed={active}
     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex items-center gap-1 ${
       active
-        ? tone === 'green' ? 'bg-[#15E558] text-black border-[#15E558] font-bold' : 'bg-[#40BCF4] text-black border-[#40BCF4] font-bold'
+        ? tone === 'green' ? 'bg-[#00E054] text-black border-[#00E054] font-bold' : 'bg-[#40BCF4] text-black border-[#40BCF4] font-bold'
         : 'bg-[#141b24] text-[#9fb0c3] border-[#2a3848] hover:text-white'
     }`}
   >
@@ -42,7 +42,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({ z, filters, onApply, o
     <Sheet z={z} onClose={onClose} label="Filter books">
       <div className="px-5 pt-2 pb-3 flex items-center justify-between border-b border-[#233140]">
         <h2 className="text-base font-bold text-white">Filter</h2>
-        <button type="button" onClick={() => setF(DEFAULT_FILTERS)} className="text-xs text-[#8fa0b5] hover:text-[#15E558]">
+        <button type="button" onClick={() => setF(DEFAULT_FILTERS)} className="text-xs text-[#8fa0b5] hover:text-[#00E054]">
           Reset
         </button>
       </div>
@@ -86,7 +86,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({ z, filters, onApply, o
             onApply(f);
             onClose();
           }}
-          className="flex-1 py-3 rounded-xl bg-[#15E558] text-black text-xs font-bold"
+          className="flex-1 py-3 rounded-xl bg-[#00E054] text-black text-xs font-bold"
         >
           Show results
         </button>

@@ -79,7 +79,7 @@ export const BookQuickMenuModal: React.FC<BookQuickMenuProps> = ({ z, bookId }) 
               type="button"
               aria-pressed={isRead}
               onClick={() => ui.toast(lib.actions.toggleRead(book) ? 'Marked as read' : 'Unmarked as read')}
-              className={`py-2.5 rounded-xl flex flex-col items-center gap-1 text-[11px] font-semibold ${isRead ? 'bg-[#15E558]/15 text-[#15E558]' : 'bg-[#1c2734] text-[#8fa0b5]'}`}
+              className={`py-2.5 rounded-xl flex flex-col items-center gap-1 text-[11px] font-semibold ${isRead ? 'bg-[#00E054]/15 text-[#00E054]' : 'bg-[#1c2734] text-[#8fa0b5]'}`}
             >
               <Eye className="w-5 h-5" /> {isRead ? 'Read' : 'Read?'}
             </button>
@@ -101,7 +101,7 @@ export const BookQuickMenuModal: React.FC<BookQuickMenuProps> = ({ z, bookId }) 
             </button>
           </div>
           <div className="py-1 divide-y divide-[#202c3a]/60">
-            <Row icon={<Plus className="w-4 h-4 text-[#15E558]" />} label="Log to diary" onClick={() => ui.replaceTop({ type: 'log', bookId: book.id })} />
+            <Row icon={<Plus className="w-4 h-4 text-[#00E054]" />} label="Log to diary" onClick={() => ui.replaceTop({ type: 'log', bookId: book.id })} />
             <Row icon={<Edit3 className="w-4 h-4 text-[#FF8000]" />} label="Write a review" onClick={() => ui.replaceTop({ type: 'log', bookId: book.id })} />
             <Row icon={<ListIcon className="w-4 h-4 text-[#40BCF4]" />} label="Add to a list" onClick={() => setView('lists')} right={<span className="text-[#6c7f96]">›</span>} />
             <Row icon={<ImageIcon className="w-4 h-4 text-[#a8b8cc]" />} label="Change cover" onClick={openCovers} right={<span className="text-[#6c7f96]">›</span>} />
@@ -126,7 +126,7 @@ export const BookQuickMenuModal: React.FC<BookQuickMenuProps> = ({ z, bookId }) 
           <button
             type="button"
             onClick={() => ui.replaceTop({ type: 'createList', initialBookId: book.id })}
-            className="w-full px-3 py-3 rounded-xl border border-dashed border-[#2f4054] text-left text-sm text-[#15E558] font-semibold flex items-center gap-2"
+            className="w-full px-3 py-3 rounded-xl border border-dashed border-[#2f4054] text-left text-sm text-[#00E054] font-semibold flex items-center gap-2"
           >
             <Plus className="w-4 h-4" /> New list with this book
           </button>
@@ -146,7 +146,7 @@ export const BookQuickMenuModal: React.FC<BookQuickMenuProps> = ({ z, bookId }) 
                   className="w-full px-3 py-3 rounded-xl bg-[#1c2734] hover:bg-[#253446] flex items-center justify-between text-left text-sm text-[#cbd6e2]"
                 >
                   <span className="truncate">{lst.title} <span className="text-[11px] text-[#6c7f96]">· {lst.bookIds.length}</span></span>
-                  {inList && <Check className="w-4 h-4 text-[#15E558] shrink-0" />}
+                  {inList && <Check className="w-4 h-4 text-[#00E054] shrink-0" />}
                 </button>
               );
             })}
@@ -179,10 +179,10 @@ export const BookQuickMenuModal: React.FC<BookQuickMenuProps> = ({ z, bookId }) 
                       lib.actions.setCover(book, url);
                       ui.toast('Cover updated');
                     }}
-                    className={`relative aspect-[2/3] rounded-md overflow-hidden border-2 transition-all ${active ? 'border-[#15E558]' : 'border-transparent hover:border-[#40BCF4]'}`}
+                    className={`relative aspect-[2/3] rounded-md overflow-hidden border-2 transition-all ${active ? 'border-[#00E054]' : 'border-transparent hover:border-[#40BCF4]'}`}
                   >
                     <img src={url.replace('-L.jpg', '-M.jpg')} alt="" loading="lazy" className="w-full h-full object-cover bg-[#10151c]" />
-                    {active && <span className="absolute top-1 right-1 p-0.5 rounded-full bg-[#15E558] text-black"><Check className="w-3 h-3 stroke-[3]" /></span>}
+                    {active && <span className="absolute top-1 right-1 p-0.5 rounded-full bg-[#00E054] text-black"><Check className="w-3 h-3 stroke-[3]" /></span>}
                   </button>
                 );
               })}
